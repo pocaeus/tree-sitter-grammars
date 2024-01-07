@@ -1,6 +1,6 @@
 # tree-sitter-grammars
 
-Repository containing tree-sitter grammars for every language available in one place.
+Repository containing tree-sitter grammars for many different languages available in one place, and a small CLI utility to add and update grammars.
 
 ## Contributing
 
