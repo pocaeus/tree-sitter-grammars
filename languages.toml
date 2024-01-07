@@ -1,0 +1,17 @@
+# Each language can have one grammar, it needs a name (used for the directory), the git repository
+# to clone, and optionally a commit to checkout a specific commit of the grammar repository.
+#
+# For example, to add a language 'foo' we need to add something like:
+#
+#     foo = { 
+#         name="tree-sitter-foo",
+#         git="git@github.com:pseudomata/tree-sitter-foo.git", 
+#         version="04937885edaae68e9b52001b88a6f72daeda391e" 
+#     }
+#
+[languages]
+agda = { name="tree-sitter-agda", git="git@github.com:tree-sitter/tree-sitter-agda.git" }
+c = { name="tree-sitter-c", git="git@github.com:tree-sitter/tree-sitter-c.git" }
+c-sharp = { name="tree-sitter-c-sharp", git="git@github.com:tree-sitter/tree-sitter-c-sharp.git" }
+css = { name="tree-sitter-css", git="git@github.com:tree-sitter/tree-sitter-css.git" }
+cpp = { name="tree-sitter-cpp", git="git@github.com:tree-sitter/tree-sitter-cpp.git" }
