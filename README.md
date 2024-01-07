@@ -15,8 +15,11 @@ If you'd like to add an additional language, please open a PR after following th
 
 All languages are listed out in the [`languages.toml`](./languages.toml) file and are downloaded to the [`grammars`](./grammars) directory by default using the accompanying Rust program. To add a new language, modify the [`languages.toml`](./languages.toml) file to include:
 
-```shell
-tree-sitter-grammars add --name foo --git git@github.com:user/tree-sitter-foo.git --hash 04937885edaae68e9b52001b88a6f72daeda391e
+```console
+tree-sitter-grammars add --name foo \
+    --git git@github.com:user/tree-sitter-foo.git \
+    --hash 04937885edaae68e9b52001b88a6f72daeda391e \  # optional
+    --file languages.toml  # this will modify the `languages.toml` file to add foo to the list
 ```
 
 Or alternatively you can manually add it to [`languages.toml`](./languages.toml):
@@ -29,8 +32,8 @@ foo = { name="tree-sitter-foo", git="git@github.com:user/tree-sitter-foo.git", h
 
 Once added, run the updater to download the grammar:
 
-```shell
-tree-sitter-grammars update -f languages.toml -d grammars
+```console
+tree-sitter-grammars update --file languages.toml --dir grammars
 ```
 
 ## License
