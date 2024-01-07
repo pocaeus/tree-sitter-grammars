@@ -8,7 +8,7 @@
 #         git="git@github.com:pseudomata/tree-sitter-foo.git", 
 #         version="04937885edaae68e9b52001b88a6f72daeda391e" 
 #     }
-#
+
 [languages]
 agda = { name="tree-sitter-agda", git="git@github.com:tree-sitter/tree-sitter-agda.git" }
 c = { name="tree-sitter-c", git="git@github.com:tree-sitter/tree-sitter-c.git" }
