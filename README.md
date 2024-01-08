@@ -16,7 +16,7 @@ If you'd like to add an additional language, please open a PR after following th
 - Run `tree-sitter-grammars update` to add the grammar to [`grammars`](./grammars) directory
 - Add a `hash` only if necessary (i.e. the latest commit is broken)
 
-## Adding a new grammar
+### Adding a new grammar
 
 All languages are listed out in the [`languages.toml`](./languages.toml) file and are downloaded to the [`grammars`](./grammars) directory by default using the accompanying Rust program. To add a new language, modify the [`languages.toml`](./languages.toml) file to include:
 
@@ -43,7 +43,7 @@ tree-sitter-grammars update --name foo \
                             --dir grammars
 ```
 
-## Updating all grammars
+### Updating all grammars
 
 All listed grammars can be updated to their latest versions by running:
 
