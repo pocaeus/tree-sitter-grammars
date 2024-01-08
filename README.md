@@ -2,6 +2,10 @@
 
 Repository containing tree-sitter grammars for many different languages available in one place, and a small CLI utility to add and update grammars.
 
+## Development
+
+If you have nix installed you can simply run `nix build`, or alternatively use the development shell with `nix develop` and then run `cargo build`.
+
 ## Contributing
 
 If you'd like to add an additional language, please open a PR after following the instructions in [Adding a new grammar](#adding-a-new-grammar). Please take note the following conventions:
