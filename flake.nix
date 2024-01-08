@@ -10,11 +10,14 @@
     rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { self, nixpkgs, flake-utils, rust-overlay }:
+  outputs = { self, lib, stdenv, nixpkgs, flake-utils, rust-overlay }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [ (import rust-overlay) ];
         pkgs = import nixpkgs { inherit system overlays; };
+
+        inherit (pkgs.darwin.apple_sdk.frameworks) Security;
+
         rustVersion = pkgs.rust-bin.stable.latest.default;
 
         rustPlatform = pkgs.makeRustPlatform {
@@ -23,28 +26,26 @@
         };
 
       in {
-        defaultPackage = rustPlatform.buildRustPackage {
-          pname = "tree-sitter-grammars";
-          version = "0.1.0";
-          src = ./.;
-          cargoLock.lockFile = ./Cargo.lock;
+        defaultPackage = with pkgs;
+          rustPlatform.buildRustPackage {
+            pname = "tree-sitter-grammars";
+            version = "0.1.0";
+            src = ./.;
+            cargoLock.lockFile = ./Cargo.lock;
 
-          buildInputs = with pkgs;
-            [ openssl ] ++ lib.optionals stdenv.isDarwin
-            [ darwin.apple_sdk.frameworks.Security ];
-          nativeBuildInputs = with pkgs; [ pkg-config libiconv ];
+            buildInputs = [ openssl ] ++ optionals isDarwin [ Security ];
+            nativeBuildInputs = [ pkg-config libiconv ];
 
-          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
-        };
+            PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+          };
 
         devShell = with pkgs;
           mkShell {
             nativeBuildInputs =
-              [ rustVersion clippy rustfmt rust-analyzer libiconv pkg-config ];
-            buildInputs = [ openssl ] ++ lib.optionals stdenv.isDarwin
-              [ darwin.apple_sdk.frameworks.Security ];
+              [ clippy libiconv pkg-config rust-analyzer rustVersion rustfmt ];
+            buildInputs = [ openssl ] ++ optionals isDarwin [ Security ];
             shellHook = ''
-              echo && echo && echo "Entering dev shell for 'tree-sitter-grammars' project."
+              echo "Entering dev shell for 'tree-sitter-grammars' project."
             '';
             PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
           };
