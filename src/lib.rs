@@ -1,10 +1,13 @@
+use git2::Oid;
 use git2::Repository;
+use num_cpus;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
+use std::thread;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Language {
@@ -60,8 +63,6 @@ pub fn update_language(
             toml::from_str(&toml_contents).expect("Failed to parse TOML");
 
         if let Some(language) = languages.languages.get(&language_name) {
-            println!("Updating language: {:?}", language.name);
-
             let desination_directory = format!("{}{}", directory.display(), &language.name);
             clone_repository(language.clone(), desination_directory);
         } else {
@@ -73,11 +74,29 @@ pub fn update_language(
         let languages: LanguageGrammarsTOML =
             toml::from_str(&toml_contents).expect("Failed to parse TOML");
 
-        for (_, language) in languages.languages.iter() {
-            println!("Updating language: {:?}", language.name);
+        let tasks: Vec<_> = languages
+            .languages
+            .iter()
+            .map(|(_, language)| {
+                let destination_directory = format!("{}{}", directory.display(), &language.name);
+                (language.clone(), destination_directory)
+            })
+            .collect();
 
-            let desination_directory = format!("{}{}", directory.display(), &language.name);
-            clone_repository(language.clone(), desination_directory);
+        let num_cores = num_cpus::get();
+
+        let handles: Vec<_> = tasks
+            .into_iter()
+            .take(num_cores)
+            .map(|(language, destination_directory)| {
+                thread::spawn(move || {
+                    clone_repository(language, destination_directory);
+                })
+            })
+            .collect();
+
+        for handle in handles {
+            handle.join().unwrap();
         }
     } else {
         eprintln!("Please provide a language name or use the --all option.");
@@ -91,9 +110,22 @@ fn clone_repository(language: Language, directory: String) {
         }
     }
     match Repository::clone(&language.git, Path::new(&directory)) {
-        Ok(_repo) => {}
+        Ok(repo) => {
+            if let Some(commit_hash) = language.hash {
+                let _ = repo.set_head_detached(
+                    Oid::from_str(&commit_hash)
+                        .ok()
+                        .expect("Failed to checkout the specific commit"),
+                );
+            }
+            println!("Updated language: {:?}", language.name);
+        }
         Err(e) => {
-            eprintln!("Failed to open repository: {:?}", e);
+            eprintln!(
+                "Failed to update language: {:?} (error: {:?})",
+                language.name,
+                e.message()
+            );
         }
     }
 }
