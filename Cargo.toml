@@ -9,5 +9,5 @@ edition = "2021"
 clap = { version = "4.4.13", features = ["derive"] }
 git2 = "0.18.1"
 indicatif = "0.17.7"
-openssl = { version = "0.10.62", features = ["vendored"] }
+# openssl = { version = "0.10.62", features = ["vendored"] }
 toml = "0.8.8"

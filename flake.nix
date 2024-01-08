@@ -1,23 +1,50 @@
 {
+  description = ''
+    Repository containing tree-sitter grammars for many different languages available
+    in one place, and a small CLI utility to add and update grammars.
+  '';
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/master";
     flake-utils.url = "github:numtide/flake-utils";
+    rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, rust-overlay }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
-        inherit (pkgs.darwin.apple_sdk.frameworks) Security;
+        overlays = [ (import rust-overlay) ];
+        pkgs = import nixpkgs { inherit system overlays; };
+        rustVersion = pkgs.rust-bin.stable.latest.default;
+
+        rustPlatform = pkgs.makeRustPlatform {
+          cargo = rustVersion;
+          rustc = rustVersion;
+        };
+
       in {
+        defaultPackage = rustPlatform.buildRustPackage {
+          pname = "tree-sitter-grammars";
+          version = "0.1.0";
+          src = ./.;
+          cargoLock.lockFile = ./Cargo.lock;
+
+          nativeBuildInputs = with pkgs;
+            [ pkg-config libiconv ] ++ lib.optionals stdenv.isDarwin
+            [ darwin.apple_sdk.frameworks.Security ];
+          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+        };
+
         devShell = with pkgs;
           mkShell {
-            buildInputs =
-              [ cargo clippy rustc rustfmt rust-analyzer libiconv pkg-config ]
-              ++ lib.optionals stdenv.isDarwin [ Security ];
+            nativeBuildInputs =
+              [ rustVersion clippy rustfmt rust-analyzer libiconv pkg-config ]
+              ++ lib.optionals stdenv.isDarwin
+              [ darwin.apple_sdk.frameworks.Security ];
             shellHook = ''
               echo && echo && echo "Entering dev shell for 'tree-sitter-grammars' project."
             '';
+            PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
           };
       });
 }
