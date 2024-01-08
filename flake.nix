@@ -10,13 +10,15 @@
     rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { self, lib, stdenv, nixpkgs, flake-utils, rust-overlay }:
+  outputs = { self, nixpkgs, flake-utils, rust-overlay }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [ (import rust-overlay) ];
         pkgs = import nixpkgs { inherit system overlays; };
 
         inherit (pkgs.darwin.apple_sdk.frameworks) Security;
+        inherit (pkgs.lib) optionals;
+        inherit (pkgs.stdenv) isDarwin;
 
         rustVersion = pkgs.rust-bin.stable.latest.default;
 
