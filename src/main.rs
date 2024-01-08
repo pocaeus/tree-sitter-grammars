@@ -1,22 +1,57 @@
-use clap::Parser;
+use std::path::PathBuf;
 
-/// Simple program to greet a person
-#[derive(Parser, Debug)]
+use clap::{Parser, Subcommand};
+
+#[derive(Parser)]
 #[command(author, version, about, long_about = None)]
-struct Args {
-    /// Name of the person to greet
-    #[arg(short, long)]
-    name: String,
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
 
-    /// Number of times to greet
-    #[arg(short, long, default_value_t = 1)]
-    count: u8,
+    /// Path to file containing languages and their grammar repositories
+    #[arg(short, long, default_value = "./languages.toml", global = true)]
+    file: PathBuf,
+
+    /// Path to directory containing grammar repositories
+    #[arg(short, long, default_value = "./grammars/", global = true)]
+    directory: PathBuf,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Add a new tree-sitter grammar to the `languages.toml` file
+    Add {
+        /// Name of the language being added, e.g. 'rust'
+        #[arg(short, long)]
+        name: String,
+        /// URL to the tree-sitter grammar, e.g. 'git@github.com:tree-sitter/tree-sitter-rust.git'
+        #[arg(short, long)]
+        git: String,
+        /// Optional git hash to checkout from the grammar repository
+        #[arg(long)]
+        hash: Option<String>,
+    },
+    /// Update the tree-sitter grammar(s)
+    Update {
+        /// Name of the language grammar to update, e.g. 'rust'
+        #[arg(short, long)]
+        name: Option<String>,
+        /// Use this flag to update all grammars for all languages listed
+        #[arg(long, default_value_t = false)]
+        all: bool,
+    },
 }
 
 fn main() {
-    let args = Args::parse();
+    let cli = Cli::parse();
 
-    for _ in 0..args.count {
-        println!("Hello {}!", args.name)
+    match &cli.command {
+        Some(Commands::Add { name, git, hash }) => {
+            println!("Add");
+        }
+        Some(Commands::Update { name, all }) => {
+            println!("Update")
+        }
+        None => {}
     }
 }

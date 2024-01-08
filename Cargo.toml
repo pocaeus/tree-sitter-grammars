@@ -2,6 +2,10 @@
 name = "tree-sitter-grammars"
 version = "0.1.0"
 edition = "2021"
+description = "Command line program to add and update tree-sitter grammars for different languages."
+license = "MIT"
+repository = "https://github.com/pseudomata/tree-sitter-grammars"
+homepage = "https://github.com/pseudomata/tree-sitter-grammars"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
