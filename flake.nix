@@ -29,17 +29,19 @@
           src = ./.;
           cargoLock.lockFile = ./Cargo.lock;
 
-          nativeBuildInputs = with pkgs;
-            [ pkg-config libiconv ] ++ lib.optionals stdenv.isDarwin
+          buildInputs = with pkgs;
+            [ openssl ] ++ lib.optionals stdenv.isDarwin
             [ darwin.apple_sdk.frameworks.Security ];
+          nativeBuildInputs = with pkgs; [ pkg-config libiconv ];
+
           PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
         };
 
         devShell = with pkgs;
           mkShell {
             nativeBuildInputs =
-              [ rustVersion clippy rustfmt rust-analyzer libiconv pkg-config ]
-              ++ lib.optionals stdenv.isDarwin
+              [ rustVersion clippy rustfmt rust-analyzer libiconv pkg-config ];
+            buildInputs = [ openssl ] ++ lib.optionals stdenv.isDarwin
               [ darwin.apple_sdk.frameworks.Security ];
             shellHook = ''
               echo && echo && echo "Entering dev shell for 'tree-sitter-grammars' project."
