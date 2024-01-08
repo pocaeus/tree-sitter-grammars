@@ -456,6 +456,8 @@ dependencies = [
  "clap",
  "git2",
  "indicatif",
+ "serde",
+ "serde_derive",
  "toml",
 ]
 

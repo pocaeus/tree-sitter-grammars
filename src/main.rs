@@ -2,6 +2,10 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
+use tree_sitter_grammars::add_language_grammar_to_toml;
+use tree_sitter_grammars::update_language;
+use tree_sitter_grammars::Language;
+
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
@@ -45,12 +49,17 @@ enum Commands {
 fn main() {
     let cli = Cli::parse();
 
+    let dir = cli.directory;
+    let file_path = cli.file;
+
     match &cli.command {
         Some(Commands::Add { name, git, hash }) => {
-            println!("Add");
+            let tree_sitter_name = format!("{}{}", "tree-sitter-", name);
+            let language = Language::new(tree_sitter_name, git.clone(), hash.clone());
+            add_language_grammar_to_toml(name.clone(), language, file_path);
         }
         Some(Commands::Update { name, all }) => {
-            println!("Update")
+            update_language(name.clone(), all.clone(), dir, file_path);
         }
         None => {}
     }
