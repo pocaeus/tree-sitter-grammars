@@ -1,4 +1,5 @@
 # Automatically generated, DO NOT EDIT! Use `tree-sitter-grammars add` to modify.
+
 [languages.ada]
 name = "tree-sitter-ada"
 git = "git@github.com:briot/tree-sitter-ada.git"
