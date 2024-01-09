@@ -1,7 +1,6 @@
 use git2::Oid;
 use git2::Repository;
-use indicatif::ProgressBar;
-use indicatif::ProgressStyle;
+use indicatif::{ProgressBar, ProgressStyle};
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use std::collections::BTreeMap;
@@ -122,7 +121,10 @@ async fn clone_repository(language: Language, directory: String) {
                         .expect("Failed to checkout the specific commit"),
                 );
             }
-            progress.finish_with_message(format!("Successfully udated {}", language.name));
+            let git_folder = format!("{}/{}", &directory, ".git");
+
+            fs::remove_dir_all(&git_folder).expect("Could not remove .git folder");
+            progress.finish_with_message(format!("Successfully updated {}", language.name));
         }
         Err(e) => {
             progress.finish_with_message(format!(
