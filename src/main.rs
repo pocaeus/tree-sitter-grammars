@@ -56,7 +56,8 @@ fn main() {
         Some(Commands::Add { name, git, hash }) => {
             let tree_sitter_name = format!("{}{}", "tree-sitter-", name);
             let language = Language::new(tree_sitter_name, git.clone(), hash.clone());
-            add_language_grammar_to_toml(name.clone(), language, file_path);
+            add_language_grammar_to_toml(name.clone(), language, file_path.clone());
+            update_language(Some(name.clone()), false, file_path.clone(), dir);
         }
         Some(Commands::Update { name, all }) => {
             update_language(name.clone(), all.clone(), file_path, dir);
