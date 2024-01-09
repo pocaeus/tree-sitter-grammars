@@ -170,7 +170,7 @@ git = "https://github.com/r-lib/tree-sitter-r.git"
 
 [languages.racket]
 name = "tree-sitter-racket"
-git = "https://github.com/6cdh/tree-sitter-racket.git"
+git = "https://github.com/6cdh/tree-sitter-racket.git "
 
 [languages.regex]
 name = "tree-sitter-regex"

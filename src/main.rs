@@ -46,8 +46,7 @@ enum Commands {
     },
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let cli = Cli::parse();
 
     let dir = cli.directory;
@@ -60,7 +59,7 @@ async fn main() {
             add_language_grammar_to_toml(name.clone(), language, file_path);
         }
         Some(Commands::Update { name, all }) => {
-            update_language(name.clone(), all.clone(), file_path, dir).await;
+            update_language(name.clone(), all.clone(), file_path, dir);
         }
         None => {}
     }
