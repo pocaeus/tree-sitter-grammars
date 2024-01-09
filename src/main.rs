@@ -35,8 +35,8 @@ enum Commands {
         #[arg(long)]
         hash: Option<String>,
     },
-    /// Update the tree-sitter grammar(s)
-    Update {
+    /// Fetch the tree-sitter grammar(s)
+    Fetch {
         /// Name of the language grammar to update, e.g. 'rust'
         #[arg(short, long)]
         name: Option<String>,
@@ -60,7 +60,7 @@ async fn main() {
             add_language_grammar_to_toml(name.clone(), language, file_path.clone());
             update_language(Some(name.clone()), false, file_path.clone(), dir).await;
         }
-        Some(Commands::Update { name, all }) => {
+        Some(Commands::Fetch { name, all }) => {
             update_language(name.clone(), all.clone(), file_path, dir).await;
         }
         None => {}
