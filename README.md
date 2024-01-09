@@ -56,3 +56,5 @@ Take note of the `--all` flag. Alternatively, a single grammar is updated by pro
 ## License
 
 Available under the MIT license. See [`LICENSE`](./LICENSE).
+
+**NOTE:** each grammar under `/grammars/tree-sitter-<language>` has it's own LICENSE, which is kept at the root. Please consult the individual licenses for each grammar as well.
