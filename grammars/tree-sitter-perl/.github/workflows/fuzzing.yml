@@ -1,0 +1,17 @@
+name: Fuzz De Parser
+on:
+  workflow_dispatch:
+  # push:
+  #   paths: 
+  #     - src/scanner.c
+jobs:
+  test:
+    name: Fuzz Parser
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v3
+      - uses: vigoux/tree-sitter-fuzz-action@v1
+        with:
+          language: perl
+          external-scanner: src/scanner.c
+          time: 60
