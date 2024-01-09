@@ -1,13 +1,13 @@
 use git2::Oid;
 use git2::Repository;
-use num_cpus;
+use indicatif::ProgressBar;
+use indicatif::ProgressStyle;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
-use std::thread;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Language {
@@ -51,7 +51,7 @@ pub fn add_language_grammar_to_toml(name: String, language: Language, file_path:
     fs::write(&file_path, updated_toml).expect("Failed to write updated TOML file");
 }
 
-pub fn update_language(
+pub async fn update_language(
     name: Option<String>,
     all: bool,
     file_path: PathBuf,
@@ -64,9 +64,7 @@ pub fn update_language(
 
         if let Some(language) = languages.languages.get(&language_name) {
             let destination_directory = format!("{}{}", directory.display(), &language.name);
-            if let Err(err) = clone_repository(language.clone(), destination_directory) {
-                eprintln!("Cloning error: {:?}", err);
-            }
+            clone_repository(language.clone(), destination_directory).await;
         } else {
             eprintln!("Language not found: {}", language_name);
         }
@@ -76,7 +74,7 @@ pub fn update_language(
         let languages: LanguageGrammarsTOML =
             toml::from_str(&toml_contents).expect("Failed to parse TOML");
 
-        let tasks: Vec<_> = languages
+        let grammars_to_update: Vec<_> = languages
             .languages
             .iter()
             .map(|(_, language)| {
@@ -85,20 +83,18 @@ pub fn update_language(
             })
             .collect();
 
-        let handles: Vec<_> = tasks
+        let async_clones: Vec<_> = grammars_to_update
             .into_iter()
             .map(|(language, destination_directory)| {
-                thread::spawn(move || {
-                    if let Err(err) = clone_repository(language.clone(), destination_directory) {
-                        eprintln!("Cloning error: {:?}", err);
-                    }
+                tokio::spawn(async move {
+                    clone_repository(language.clone(), destination_directory).await
                 })
             })
             .collect();
 
-        for handle in handles {
-            if let Err(err) = handle.join() {
-                eprintln!("Thread join error: {:?}", err);
+        for task in async_clones {
+            if let Err(err) = task.await {
+                eprintln!("Async task error: {:?}", err);
             }
         }
     } else {
@@ -106,10 +102,15 @@ pub fn update_language(
     }
 }
 
-fn clone_repository(language: Language, directory: String) -> Result<(), String> {
+async fn clone_repository(language: Language, directory: String) {
+    let progress = ProgressBar::new_spinner();
+    progress.set_style(ProgressStyle::default_spinner().tick_strings(&["-", "\\", "|", "/"]));
+    progress.set_message(format!("Updating {}", language.name));
+
     if let Err(e) = fs::remove_dir_all(&directory) {
         if e.kind() != std::io::ErrorKind::NotFound {
-            eprintln!("Failed to remove existing directory: {:?}", e);
+            progress.finish_with_message(format!("Failed update {}: {:?}", language.name, e));
+            return;
         }
     }
     match Repository::clone(&language.git, Path::new(&directory)) {
@@ -121,12 +122,11 @@ fn clone_repository(language: Language, directory: String) -> Result<(), String>
                         .expect("Failed to checkout the specific commit"),
                 );
             }
-            println!("Updated language: {:?}", language.name);
-            return Ok(());
+            progress.finish_with_message(format!("Successfully udated {}", language.name));
         }
         Err(e) => {
-            return Err(format!(
-                "Failed to update language: {:?} (error: {:?})",
+            progress.finish_with_message(format!(
+                "Failed to update {}: {:?}",
                 language.name,
                 e.message()
             ));
