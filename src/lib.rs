@@ -63,8 +63,10 @@ pub fn update_language(
             toml::from_str(&toml_contents).expect("Failed to parse TOML");
 
         if let Some(language) = languages.languages.get(&language_name) {
-            let desination_directory = format!("{}{}", directory.display(), &language.name);
-            clone_repository(language.clone(), desination_directory);
+            let destination_directory = format!("{}{}", directory.display(), &language.name);
+            if let Err(err) = clone_repository(language.clone(), destination_directory) {
+                eprintln!("Cloning error: {:?}", err);
+            }
         } else {
             eprintln!("Language not found: {}", language_name);
         }
@@ -83,27 +85,28 @@ pub fn update_language(
             })
             .collect();
 
-        let num_cores = num_cpus::get();
-
         let handles: Vec<_> = tasks
             .into_iter()
-            .take(num_cores)
             .map(|(language, destination_directory)| {
                 thread::spawn(move || {
-                    clone_repository(language, destination_directory);
+                    if let Err(err) = clone_repository(language.clone(), destination_directory) {
+                        eprintln!("Cloning error: {:?}", err);
+                    }
                 })
             })
             .collect();
 
         for handle in handles {
-            handle.join().unwrap();
+            if let Err(err) = handle.join() {
+                eprintln!("Thread join error: {:?}", err);
+            }
         }
     } else {
         eprintln!("Please provide a language name or use the --all option.");
     }
 }
 
-fn clone_repository(language: Language, directory: String) {
+fn clone_repository(language: Language, directory: String) -> Result<(), String> {
     if let Err(e) = fs::remove_dir_all(&directory) {
         if e.kind() != std::io::ErrorKind::NotFound {
             eprintln!("Failed to remove existing directory: {:?}", e);
@@ -119,13 +122,14 @@ fn clone_repository(language: Language, directory: String) {
                 );
             }
             println!("Updated language: {:?}", language.name);
+            return Ok(());
         }
         Err(e) => {
-            eprintln!(
+            return Err(format!(
                 "Failed to update language: {:?} (error: {:?})",
                 language.name,
                 e.message()
-            );
+            ));
         }
     }
 }
