@@ -1,12 +1,12 @@
 {
   "name": "tree-sitter-javascript",
-  "version": "0.20.1",
+  "version": "0.20.4",
   "description": "JavaScript grammar for tree-sitter",
   "main": "bindings/node",
   "keywords": [
     "parser",
     "lexer",
-	"javascript"
+    "javascript"
   ],
   "repository": {
     "type": "git",
@@ -15,12 +15,12 @@
   "author": "Max Brunsfeld",
   "license": "MIT",
   "dependencies": {
-    "nan": "^2.17.0"
+    "nan": "^2.18.0"
   },
   "devDependencies": {
-    "eslint": "^8.47.0",
+    "eslint": "^8.57.0",
     "eslint-config-google": "^0.14.0",
-    "tree-sitter-cli": "^0.20.8"
+    "tree-sitter-cli": "^0.21.0"
   },
   "scripts": {
     "build": "tree-sitter generate && node-gyp build",
@@ -36,9 +36,12 @@
         "js"
       ],
       "highlights": [
+        "queries/highlights.scm",
         "queries/highlights-jsx.scm",
-        "queries/highlights-params.scm",
-        "queries/highlights.scm"
+        "queries/highlights-params.scm"
+      ],
+      "tags": [
+        "queries/tags.scm"
       ],
       "injection-regex": "^(js|javascript)$"
     }

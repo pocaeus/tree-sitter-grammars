@@ -2,6 +2,7 @@
 // @ts-check
 
 const primitives = require('./lib/primitives.js')
+const unicode_ranges = require('./lib/unicode_ranges')
 
 /* perl.y's precedence list */
 const TERMPREC = {
@@ -79,6 +80,7 @@ module.exports = grammar({
   supertypes: $ => [
     $.primitive
   ],
+  word: $ => $._identifier,
   inline: $ => [
     $._conditionals,
     $._loops,
@@ -95,7 +97,7 @@ module.exports = grammar({
     $._LOOPEX,
     $._PHASE_NAME,
     $._HASH_PERCENT,
-    $._bareword
+    $._bareword,
   ],
   externals: $ => [
     /* ident-alikes */
@@ -139,7 +141,7 @@ module.exports = grammar({
     $._ERROR
   ],
   extras: $ => [
-    /\s|\\\r?\n/,
+    /\p{White_Space}|\\\r?\n/,
     $.comment,
     $.pod,
     $.heredoc_content,
@@ -153,6 +155,12 @@ module.exports = grammar({
     [$._listexpr, $.list_expression, $._term_rightward],
     [$._term_rightward],
     [$.function, $.bareword],
+    [$._term, $.indirect_object],
+    [$.expression_statement, $._tricky_indirob_hashref],
+    // these are all dynamic handling for continue BLOCK vs autoquoted
+    [$.loop_statement],
+    [$.cstyle_for_statement],
+    [$.for_statement],
   ],
   rules: {
     source_file: $ => seq(repeat($._fullstmt), optional($.__DATA__)),
@@ -245,6 +253,7 @@ module.exports = grammar({
     loop_statement: $ =>
       seq($._loops, '(', field('condition', $._expr), ')',
         field('block', $.block),
+        optseq('continue', field('continue', $.block))
       ),
     cstyle_for_statement: $ =>
       seq($._KW_FOR,
@@ -253,7 +262,8 @@ module.exports = grammar({
         field('condition', optional($._expr)), ';',
         field('iterator', optional($._expr)),
         ')',
-        $.block
+        $.block,
+        optseq('continue', field('continue', $.block))
       ),
     for_statement: $ =>
       seq($._KW_FOR,
@@ -263,6 +273,7 @@ module.exports = grammar({
         )),
         '(', field('list', $._expr), ')',
         field('block', $.block),
+        optseq('continue', field('continue', $.block))
       ),
 
     try_statement: $ => seq(
@@ -338,8 +349,9 @@ module.exports = grammar({
     ),
 
     // NOTE - we have container_variable as a named node so we can match against it nicely
-    // for highlighting.
-    container_variable: $ => seq('$', $._var_indirob),
+    // for highlighting. We raise its prec b/c in a print (print $thing{stuff}) it becomes a var
+    // not an indirob
+    container_variable: $ => prec(2, seq('$', $._var_indirob)),
     array_element_expression: $ => choice(
       // perly.y matches scalar '[' expr ']' here but that would yield a scalar var node
       seq(field('array', $.container_variable), '[', field('index', $._expr), ']'),
@@ -648,14 +660,12 @@ module.exports = grammar({
 
     _listop: $ => choice(
       /* TODO:
-       * LSTOP indirob listexpr
        * FUNC '(' indirob expr ')'
        */
       $.method_call_expression,
       /* METHCALL0 indirob optlistexpr
        * METHCALL indirb '(' optexpr ')'
        * LSTOP optlistexpr
-       * LSTOPSUB block optlistexpr
        */
       $.function_call_expression,
       $.ambiguous_function_call_expression,
@@ -663,10 +673,30 @@ module.exports = grammar({
 
     // the usage of NONASSOC here is to make it that any parse of a paren after a func
     // automatically becomes a non-ambiguous function call
-    function_call_expression: $ =>
+    function_call_expression: $ => choice(
       seq(field('function', $.function), '(', $._NONASSOC, optional(field('arguments', $._expr)), ')'),
+      seq(field('function', $.function), '(', $._NONASSOC, $.indirect_object, field('arguments', $._expr), ')'),
+    ),
+    indirect_object: $ => choice(
+      // we intentionally don't do bareword filehandles b/c we can't possibly do it right
+      // since we can't know what subs have been defined
+      $.scalar,
+      $.block
+    ),
+    _tricky_indirob_hashref: $ => seq($._PERLY_BRACE_OPEN, $._expr, $._PERLY_SEMICOLON, '}'),
     ambiguous_function_call_expression: $ =>
-      prec(TERMPREC.LSTOP, seq(field('function', $.function), field('arguments', $._term_rightward))),
+      // we need the right precedence here so we can read ahead for the hash/sub disambiguation
+      prec.right(TERMPREC.LSTOP,
+        choice(
+          seq(field('function', $.function), field('arguments', $._term_rightward)),
+          seq(field('function', $.function), $.indirect_object, field('arguments', $._term_rightward)),
+          // we handle this_takes_a_block { thing; other_thing }; here. we don't wanna accept an indirob of scalar tho
+          seq(field('function', $.function), alias($.block, $.indirect_object)),
+          // we handle cases like takes_a_hash { 1 => 2 }; by having this special case
+          seq(field('function', $.function), field('arguments', alias($._tricky_indirob_hashref, $.anonymous_hash_expression)), optseq($._PERLY_COMMA , field('arguments', $._term_rightward)))
+        )
+      ),
+    // we only parse a function if it won't be an indirob
     function: $ => $._bareword,
 
     method_call_expression: $ => prec.left(TERMPREC.ARROW, seq(
@@ -737,6 +767,7 @@ module.exports = grammar({
     _func0op: $ => choice(
       '__FILE__', '__LINE__', '__PACKAGE__', '__SUB__',
       'break', 'fork', 'getppid', 'time', 'times', 'wait', 'wantarray',
+      'continue' // non-block continue is func0
       /* TODO: all the end*ent, get*ent, set*ent, etc... */
     ),
 
@@ -1044,7 +1075,7 @@ module.exports = grammar({
     _conditionals: $ => choice('if', 'unless'),
     _loops: $ => choice('while', 'until'),
     _postfixables: $ => choice($._conditionals, $._loops, $._KW_FOR, 'and', 'or'),
-    _keywords: $ => choice($._postfixables, 'else', 'elsif', 'do', 'eval', 'our', 'state', 'my', 'local', 'require', 'return', 'eq', 'ne', 'lt', 'le', 'ge', 'gt', 'cmp', 'isa', $._KW_USE, $._LOOPEX, $._PHASE_NAME, '__DATA__', '__END__', 'sub', $._map_grep, 'sort', 'try', 'class', 'field', 'method'),
+    _keywords: $ => choice($._postfixables, 'else', 'elsif', 'do', 'eval', 'our', 'state', 'my', 'local', 'require', 'return', 'eq', 'ne', 'lt', 'le', 'ge', 'gt', 'cmp', 'isa', $._KW_USE, $._LOOPEX, $._PHASE_NAME, '__DATA__', '__END__', 'sub', $._map_grep, 'sort', 'try', 'class', 'field', 'method', 'continue'),
     _quotelikes: $ => choice('q', 'qq', 'qw', 'qx', 's', 'tr', 'y'),
     _autoquotables: $ => choice($._func0op, $._func1op, $._keywords, $._quotelikes),
     // we need dynamic precedence here so we can resolve things like `print -next`
@@ -1071,7 +1102,7 @@ module.exports = grammar({
 
     // prefer identifer to bareword where the grammar allows
     identifier: $ => prec(2, $._identifier),
-    _identifier: $ => /[a-zA-Z_]\w*/,
+    _identifier: $ => unicode_ranges.identifier,
     // this pattern tries to encapsulate the joys of S_scan_ident in toke.c in perl core
     // _dollar_ident_zw takes care of the subtleties that distinguish $$; ( only $$
     // followed by semicolon ) from $$deref
@@ -1079,7 +1110,7 @@ module.exports = grammar({
 
     bareword: $ => prec.dynamic(1, $._bareword),
     // _bareword is at the very end b/c the lexer prefers tokens defined earlier in the grammar
-    _bareword: $ => choice($._identifier, /((::)|([a-zA-Z_]\w*))+/), // TODO: unicode
+    _bareword: $ => choice($._identifier, unicode_ranges.bareword),
     ...primitives,
   }
 })

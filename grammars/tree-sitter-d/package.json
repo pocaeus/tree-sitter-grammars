@@ -1,6 +1,6 @@
 {
   "name": "tree-sitter-d",
-  "version": "0.3.3",
+  "version": "0.3.8",
   "description": "d grammar for tree-sitter",
   "main": "bindings/node",
   "keywords": [
@@ -25,6 +25,12 @@
       "file-types": [
         "d",
         "dd"
+      ],
+      "highlights": [
+        "queries/highlights.scm"
+      ],
+      "injections": [
+        "queries/injections.scm"
       ]
     }
   ]

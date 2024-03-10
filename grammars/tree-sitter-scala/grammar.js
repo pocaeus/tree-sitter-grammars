@@ -575,7 +575,11 @@ module.exports = grammar({
           field("parameters", repeat($.parameters)),
           field(
             "body",
-            choice($._extension_template_body, $.function_definition),
+            choice(
+              $._extension_template_body,
+              $.function_definition,
+              $.function_declaration,
+            ),
           ),
         ),
       ),
@@ -595,8 +599,7 @@ module.exports = grammar({
             field("return_type", $._structural_instance),
             seq(
               field("return_type", $._annotated_type),
-              "=",
-              field("body", $._indentable_expression),
+              optional(seq("=", field("body", $._indentable_expression))),
             ),
           ),
         ),

@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <wctype.h>
+#include <wchar.h>
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -84,10 +85,19 @@ enum TokenType {
 typedef struct {
     uint32_t len;
     uint32_t cap;
-    char *data;
+    wchar_t *data;
 } String;
 
-static String string_new() { return (String){.cap = 16, .len = 0, .data = calloc(1, sizeof(char) * 17)}; }
+static String string_new() {
+    return (String){.cap = 16, .len = 0, .data = calloc(17, sizeof(wchar_t))};
+}
+
+static inline bool string_eq(String *self, String *other)  {
+    if (self->len != other->len) {
+        return false;
+    }
+    return memcmp(self->data, other->data, self->len * sizeof(self->data[0])) == 0;
+}
 
 typedef struct {
     String word;
@@ -124,13 +134,14 @@ static unsigned serialize(Scanner *scanner, char *buffer) {
     buffer[size++] = (char)scanner->open_heredocs.len;
     for (unsigned j = 0; j < scanner->open_heredocs.len; j++) {
         Heredoc *heredoc = &scanner->open_heredocs.data[j];
-        if (size + 2 + heredoc->word.len >= TREE_SITTER_SERIALIZATION_BUFFER_SIZE) {
+        unsigned word_bytes = heredoc->word.len * sizeof(heredoc->word.data[0]);
+        if (size + 2 + word_bytes >= TREE_SITTER_SERIALIZATION_BUFFER_SIZE) {
             return 0;
         }
         buffer[size++] = (char)heredoc->end_word_indentation_allowed;
         buffer[size++] = (char)heredoc->word.len;
-        memcpy(&buffer[size], heredoc->word.data, heredoc->word.len);
-        size += heredoc->word.len;
+        memcpy(&buffer[size], heredoc->word.data, word_bytes);
+        size += word_bytes;
     }
 
     return size;
@@ -151,10 +162,11 @@ static void deserialize(Scanner *scanner, const char *buffer, unsigned length) {
         heredoc.end_word_indentation_allowed = buffer[size++];
         heredoc.word = string_new();
         uint8_t word_length = buffer[size++];
+        unsigned word_bytes = word_length * sizeof(heredoc.word.data[0]);
         STRING_GROW(heredoc.word, word_length);
-        memcpy(heredoc.word.data, buffer + size, word_length);
+        memcpy(heredoc.word.data, buffer + size, word_bytes);
         heredoc.word.len = word_length;
-        size += word_length;
+        size += word_bytes;
         VEC_PUSH(scanner->open_heredocs, heredoc);
     }
 }
@@ -182,7 +194,9 @@ static inline bool scan_whitespace(TSLexer *lexer) {
     }
 }
 
-static inline bool is_valid_name_char(TSLexer *lexer) { return iswalpha(lexer->lookahead) || lexer->lookahead == '_'; }
+static inline bool is_valid_name_char(TSLexer *lexer) {
+    return iswalnum(lexer->lookahead) || lexer->lookahead == '_' || lexer->lookahead >= 0x80;
+}
 
 static inline bool is_escapable_sequence(TSLexer *lexer) {
     // Note: remember to also update the escape_sequence rule in the
@@ -197,7 +211,7 @@ static inline bool is_escapable_sequence(TSLexer *lexer) {
     // Hex
     if (letter == 'x') {
         advance(lexer);
-        return isxdigit(lexer->lookahead);
+        return iswxdigit(lexer->lookahead);
     }
 
     // Unicode
@@ -205,7 +219,7 @@ static inline bool is_escapable_sequence(TSLexer *lexer) {
         return true; // We handle the case where this is not really an escape
                      // sequence in grammar.js - this is needed to support the
                      // edge case "\u{$a}" in which case "\u" is to be
-                     // interprented as characters and {$a} as a variable
+                     // interpreted as characters and {$a} as a variable
     }
 
     // Octal
@@ -346,7 +360,7 @@ static bool scan_encapsed_part_string(Scanner *scanner, TSLexer *lexer, bool is_
             case '\\':
                 advance(lexer);
 
-                // \{ should not be interprented as an escape sequence, but both
+                // \{ should not be interpreted as an escape sequence, but both
                 // should be consumed as normal characters
                 if (lexer->lookahead == '{') {
                     advance(lexer);
@@ -499,7 +513,7 @@ static bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
         }
 
         String word = scan_heredoc_word(lexer);
-        if (strcmp(word.data, heredoc.word.data) != 0) {
+        if (!string_eq(&word, &heredoc.word)) {
             STRING_FREE(word);
             return false;
         }

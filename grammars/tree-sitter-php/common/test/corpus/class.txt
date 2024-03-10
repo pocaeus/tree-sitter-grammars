@@ -182,6 +182,7 @@ class Foo {
     protected const C = 3;
     private const D = 4;
     final const E = 5;
+    final public const F = 6;
 }
 
 ---
@@ -210,10 +211,52 @@ class Foo {
         (final_modifier)
         (const_element (name) (integer))
       )
+      (const_declaration
+        (final_modifier)
+        (visibility_modifier)
+        (const_element (name) (integer))
+      )
     )
   )
 )
 
+=========================================
+Typed class constants
+=========================================
+
+<?php
+
+class Foo {
+    public const int A = 1;
+    public const ?array A = [];
+    public const bool D = false;
+}
+
+---
+
+(program
+  (php_tag)
+  (class_declaration
+    (name)
+    (declaration_list
+      (const_declaration
+        (visibility_modifier)
+        (primitive_type)
+        (const_element (name) (integer))
+      )
+      (const_declaration
+        (visibility_modifier)
+        (optional_type (primitive_type))
+        (const_element (name) (array_creation_expression))
+      )
+      (const_declaration
+        (visibility_modifier)
+        (primitive_type)
+        (const_element (name) (boolean))
+      )
+    )
+  )
+)
 
 =========================================
 Final class
@@ -321,18 +364,18 @@ class A {
     body: (declaration_list
       (property_declaration
         (visibility_modifier)
-        type: (union_type (primitive_type))
+        type: (primitive_type)
         (property_element (variable_name (name)))
       )
       (property_declaration
         (visibility_modifier)
         (static_modifier)
-        type: (union_type (named_type (name)))
+        type: (named_type (name))
         (property_element (variable_name (name)))
       )
       (property_declaration
         (visibility_modifier)
-        type: (union_type (optional_type (primitive_type)))
+        type: (optional_type (primitive_type))
         (property_element (variable_name (name)))
       )
       (property_declaration
@@ -371,20 +414,19 @@ class Point {
         parameters: (formal_parameters
           (property_promotion_parameter
             visibility: (visibility_modifier)
-            type: (union_type
-              (primitive_type)
-            )
+            type: (primitive_type)
+
             name: (variable_name (name))
             default_value: (float)
           )
           (simple_parameter
-            type: (union_type (primitive_type))
+            type: (primitive_type)
             name: (variable_name (name))
             default_value: (float)
           )
           (property_promotion_parameter
             visibility: (visibility_modifier)
-            type: (union_type (primitive_type))
+            type: (primitive_type)
             name: (variable_name (name))
             default_value: (float)
           )
@@ -451,282 +493,240 @@ class A {
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (named_type
-            (name)))
+        (named_type (name))
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (named_type
-            (name)))
+        (named_type (name))
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (named_type
-            (name)))
+        (named_type (name))
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (named_type
-            (name)))
+        (named_type (name))
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (visibility_modifier)
         (readonly_modifier)
-        (union_type
-          (named_type
-            (name)))
+        (named_type (name))
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
         (visibility_modifier)
-        (union_type
-          (named_type
-            (name)))
+        (named_type (name))
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))))
       (property_declaration
         (readonly_modifier)
-        (union_type
-          (named_type
-            (name)))
+        (named_type (name))
         (property_element
           (variable_name
             (name)))))))
@@ -765,7 +765,7 @@ class Point {
           (property_promotion_parameter
             visibility: (visibility_modifier)
             readonly: (readonly_modifier)
-            type: (union_type (primitive_type))
+            type: (primitive_type)
             name: (variable_name (name))))
         body: (compound_statement)))))
 

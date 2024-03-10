@@ -284,6 +284,10 @@
           "named": true
         },
         {
+          "type": "bibstyle_include",
+          "named": true
+        },
+        {
           "type": "bibtex_include",
           "named": true
         },
@@ -533,6 +537,32 @@
     }
   },
   {
+    "type": "bibstyle_include",
+    "named": true,
+    "fields": {
+      "command": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "\\bibliographystyle",
+            "named": false
+          }
+        ]
+      },
+      "path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "curly_group_path",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "bibtex_include",
     "named": true,
     "fields": {
@@ -546,12 +576,12 @@
           }
         ]
       },
-      "path": {
+      "paths": {
         "multiple": false,
         "required": true,
         "types": [
           {
-            "type": "curly_group_path",
+            "type": "curly_group_path_list",
             "named": true
           }
         ]
@@ -616,6 +646,10 @@
         },
         {
           "type": "biblatex_include",
+          "named": true
+        },
+        {
+          "type": "bibstyle_include",
           "named": true
         },
         {
@@ -954,6 +988,10 @@
         },
         {
           "type": "biblatex_include",
+          "named": true
+        },
+        {
+          "type": "bibstyle_include",
           "named": true
         },
         {
@@ -1686,6 +1724,10 @@
           "named": true
         },
         {
+          "type": "bibstyle_include",
+          "named": true
+        },
+        {
           "type": "bibtex_include",
           "named": true
         },
@@ -1976,6 +2018,10 @@
           "named": true
         },
         {
+          "type": "bibstyle_include",
+          "named": true
+        },
+        {
           "type": "bibtex_include",
           "named": true
         },
@@ -2224,6 +2270,10 @@
         },
         {
           "type": "biblatex_include",
+          "named": true
+        },
+        {
+          "type": "bibstyle_include",
           "named": true
         },
         {
@@ -2514,6 +2564,10 @@
         },
         {
           "type": "biblatex_include",
+          "named": true
+        },
+        {
+          "type": "bibstyle_include",
           "named": true
         },
         {
@@ -2844,6 +2898,10 @@
         },
         {
           "type": "biblatex_include",
+          "named": true
+        },
+        {
+          "type": "bibstyle_include",
           "named": true
         },
         {
@@ -3468,6 +3526,10 @@
         },
         {
           "type": "biblatex_include",
+          "named": true
+        },
+        {
+          "type": "bibstyle_include",
           "named": true
         },
         {
@@ -4171,6 +4233,10 @@
           "named": true
         },
         {
+          "type": "bibstyle_include",
+          "named": true
+        },
+        {
           "type": "bibtex_include",
           "named": true
         },
@@ -4428,6 +4494,10 @@
         },
         {
           "type": "biblatex_include",
+          "named": true
+        },
+        {
+          "type": "bibstyle_include",
           "named": true
         },
         {
@@ -4974,6 +5044,10 @@
           "named": true
         },
         {
+          "type": "bibstyle_include",
+          "named": true
+        },
+        {
           "type": "bibtex_include",
           "named": true
         },
@@ -5229,6 +5303,10 @@
         },
         {
           "type": "biblatex_include",
+          "named": true
+        },
+        {
+          "type": "bibstyle_include",
           "named": true
         },
         {
@@ -5618,6 +5696,10 @@
           "named": true
         },
         {
+          "type": "bibstyle_include",
+          "named": true
+        },
+        {
           "type": "bibtex_include",
           "named": true
         },
@@ -5842,6 +5924,10 @@
         },
         {
           "type": "biblatex_include",
+          "named": true
+        },
+        {
+          "type": "bibstyle_include",
           "named": true
         },
         {
@@ -6119,6 +6205,10 @@
           "named": true
         },
         {
+          "type": "bibstyle_include",
+          "named": true
+        },
+        {
           "type": "bibtex_include",
           "named": true
         },
@@ -6389,6 +6479,10 @@
           "named": true
         },
         {
+          "type": "bibstyle_include",
+          "named": true
+        },
+        {
           "type": "bibtex_include",
           "named": true
         },
@@ -6644,6 +6738,10 @@
         },
         {
           "type": "biblatex_include",
+          "named": true
+        },
+        {
+          "type": "bibstyle_include",
           "named": true
         },
         {
@@ -6926,6 +7024,10 @@
             "named": true
           },
           {
+            "type": "bibstyle_include",
+            "named": true
+          },
+          {
             "type": "bibtex_include",
             "named": true
           },
@@ -7082,11 +7184,11 @@
             "named": false
           },
           {
-            "type": "\\text",
+            "type": "\\shortintertext",
             "named": false
           },
           {
-            "type": "shortintertext",
+            "type": "\\text",
             "named": false
           }
         ]
@@ -7259,6 +7361,10 @@
         },
         {
           "type": "biblatex_include",
+          "named": true
+        },
+        {
+          "type": "bibstyle_include",
           "named": true
         },
         {
@@ -8059,6 +8165,10 @@
     "named": false
   },
   {
+    "type": "\\bibliographystyle",
+    "named": false
+  },
+  {
     "type": "\\biggl",
     "named": false
   },
@@ -8539,6 +8649,10 @@
     "named": false
   },
   {
+    "type": "\\shortintertext",
+    "named": false
+  },
+  {
     "type": "\\smartcite",
     "named": false
   },
@@ -8673,10 +8787,6 @@
   {
     "type": "placeholder",
     "named": true
-  },
-  {
-    "type": "shortintertext",
-    "named": false
   },
   {
     "type": "source_code",

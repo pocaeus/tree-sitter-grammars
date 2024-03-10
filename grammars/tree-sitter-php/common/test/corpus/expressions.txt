@@ -31,43 +31,30 @@ $a ** $c = $b;
   (expression_statement
     (assignment_expression
       left: (variable_name (name))
-      right: (exponentiation_expression
+      right: (binary_expression
         left: (integer)
-        right: (integer)
-      )
-    )
-  )
+        right: (integer))))
   (expression_statement
     (assignment_expression
       left: (variable_name (name))
       right: (integer)))
   (echo_statement
-    (exponentiation_expression
+    (binary_expression
       left: (variable_name (name))
       right: (unary_op_expression
-        (variable_name (name))
-      )
-    )
-  )
+        argument: (variable_name (name)))))
   (expression_statement
-    (exponentiation_expression
+    (binary_expression
       left: (variable_name (name))
       right: (augmented_assignment_expression
         left: (variable_name (name))
-        right: (variable_name (name))
-      )
-    )
-  )
+        right: (variable_name (name)))))
   (expression_statement
-    (exponentiation_expression
+    (binary_expression
       left: (variable_name (name))
       right: (assignment_expression
         left: (variable_name (name))
-        right: (variable_name (name))
-      )
-    )
-  )
-)
+        right: (variable_name (name))))))
 
 ==========================
 Reserved Identifiers as Names
@@ -99,11 +86,11 @@ if (!$foo = $bar) {
 (program
   (php_tag)
   (if_statement
-    (parenthesized_expression (unary_op_expression
-      (assignment_expression
-        (variable_name (name))
-        (variable_name (name)))))
-    (compound_statement)))
+    condition: (parenthesized_expression (unary_op_expression
+      argument: (assignment_expression
+        left: (variable_name (name))
+        right: (variable_name (name)))))
+    body: (compound_statement)))
 
 ===============================
 Capitalized logical operators
@@ -448,16 +435,15 @@ Associativity of negation
   (php_tag)
   (expression_statement
     (binary_expression
-      (unary_op_expression
-        (integer))
-      (unary_op_expression
-        (integer))))
+      left: (unary_op_expression
+        argument: (integer))
+      right: (unary_op_expression
+        argument: (integer))))
   (expression_statement
     (unary_op_expression
-      (binary_expression
-        (variable_name
-          (name))
-          (name)))))
+      argument: (binary_expression
+        left: (variable_name (name))
+        right: (name)))))
 
 ====================================
 Augmented assignment
@@ -754,162 +740,105 @@ throw $exception ??= new Exception();
     (throw_expression
       (object_creation_expression
         (name)
-        (arguments (argument (name)))
-      )
-    )
-  )
+        (arguments (argument (name))))))
   (expression_statement
     (assignment_expression
       left: (variable_name (name))
       right: (conditional_expression
         condition: (unary_op_expression
-          (function_call_expression
+          argument: (function_call_expression
             function: (name)
-            arguments: (arguments (argument (variable_name (name))))
-          )
-        )
+            arguments: (arguments (argument (variable_name (name))))))
         body: (function_call_expression
           function: (name)
-          arguments: (arguments (argument (variable_name (name))))
-        )
+          arguments: (arguments (argument (variable_name (name)))))
         alternative: (throw_expression
           (object_creation_expression
             (name)
-            (arguments)
-          )
-        )
-      )
-    )
-  )
+            (arguments))))))
   (expression_statement
     (binary_expression
       left: (variable_name (name))
       right: (throw_expression
         (object_creation_expression
           (name)
-          (arguments)
-        )
-      )
-    )
-  )
+          (arguments)))))
   (expression_statement
     (binary_expression
       left: (variable_name (name))
       right: (throw_expression
         (object_creation_expression
           (name)
-          (arguments)
-        )
-      )
-    )
-  )
+          (arguments)))))
   (expression_statement
     (binary_expression
       left: (variable_name (name))
       right: (throw_expression
         (object_creation_expression
           (name)
-          (arguments)
-        )
-      )
-    )
-  )
+          (arguments)))))
   (expression_statement
     (binary_expression
       left: (variable_name (name))
       right: (throw_expression
         (object_creation_expression
           (name)
-          (arguments)
-        )
-      )
-    )
-  )
+          (arguments)))))
   (expression_statement
     (throw_expression
       (member_call_expression
         object: (variable_name (name))
         name: (name)
-        arguments: (arguments)
-      )
-    )
-  )
+        arguments: (arguments))))
   (expression_statement
     (throw_expression
       (scoped_call_expression
         scope: (relative_scope)
         name: (name)
-        arguments: (arguments)
-      )
-    )
-  )
+        arguments: (arguments))))
   (expression_statement
     (throw_expression
       (conditional_expression
         condition: (variable_name (name))
         body: (object_creation_expression
           (name)
-          (arguments)
-        )
+          (arguments))
         alternative: (object_creation_expression
           (name)
-          (arguments)
-        )
-      )
-    )
-  )
+          (arguments)))))
   (expression_statement
     (throw_expression
       (binary_expression
         left: (variable_name (name))
         right: (object_creation_expression
           (name)
-          (arguments)
-        )
-      )
-    )
-  )
+          (arguments)))))
   (expression_statement
     (throw_expression
       (assignment_expression
         left: (variable_name (name))
         right: (object_creation_expression
           (name)
-          (arguments)
-        )
-      )
-    )
-  )
+          (arguments)))))
   (expression_statement
     (throw_expression
       (conditional_expression
         condition: (binary_expression
           left: (variable_name (name))
-          right: (variable_name (name))
-        )
+          right: (variable_name (name)))
         body: (object_creation_expression
           (name)
-          (arguments)
-        )
+          (arguments))
         alternative: (object_creation_expression
           (name)
-          (arguments)
-        )
-      )
-    )
-  )
+          (arguments)))))
   (expression_statement
     (throw_expression
       (augmented_assignment_expression
         left: (variable_name (name))
         right: (object_creation_expression
           (name)
-          (arguments)
-        )
-      )
-    )
-  )
-)
+          (arguments))))))
 
 ===============================================
 Nullsafe operator
@@ -1037,7 +966,7 @@ Match expressions
 <?php
 
 $statement = match ($a) {
-    Lexer::T_SELECT, $c => $b,
+    Lexer::T_SELECT, $c, => $b,
     Lexer::T_UPDATE => updateStatement(),
     Lexer::T_DELETE => $this->DeleteStatement(),
     default => $this->syntaxError('SELECT, UPDATE or DELETE'),
@@ -1121,7 +1050,7 @@ $fn1 = fn($x) => $x + $y;
     (arrow_function
       parameters: (formal_parameters
         (simple_parameter
-          type: (union_type (primitive_type))
+          type: (primitive_type)
           name: (variable_name (name))
         )
       )
@@ -1170,7 +1099,7 @@ $fn1 = fn($x) => $x + $y;
   (expression_statement
     (arrow_function
       parameters: (formal_parameters)
-      return_type: (union_type (primitive_type))
+      return_type: (primitive_type)
       body: (variable_name (name))
     )
   )
@@ -1321,7 +1250,7 @@ class A {
         (variable_name (name))
       )
       (variadic_parameter
-        (union_type (named_type (name)))
+        (named_type (name))
         (reference_modifier)
         (variable_name (name))
       )
@@ -1543,3 +1472,75 @@ $statement = match ($a) {
   )
 )
 
+===============================================
+Dynamic class constant access
+===============================================
+
+<?php
+Foo::{$bar};
+
+---
+
+(program
+  (php_tag)
+  (expression_statement
+    (class_constant_access_expression
+      (name)
+      (name (variable_name (name))))))
+
+===============================================
+UTF-8 identifiers
+===============================================
+
+<?php
+$漢字;
+
+<<<漢漢字
+  This is a heredoc
+漢漢字;
+
+<<<'字漢'
+  This is a nowdoc.
+字漢;
+
+---
+
+(program
+  (php_tag)
+  (expression_statement
+    (variable_name (name)))
+    (expression_statement
+      (heredoc
+        (heredoc_start)
+        (heredoc_body
+          (string_value))
+        (heredoc_end)))
+    (expression_statement
+      (nowdoc
+        (heredoc_start)
+        (nowdoc_body
+          (nowdoc_string))
+        (heredoc_end))))
+
+===============================================
+Yield expressions
+===============================================
+
+<?php
+
+yield;
+yield $a;
+yield from $a;
+
+---
+
+(program
+  (php_tag)
+  (expression_statement
+    (yield_expression))
+  (expression_statement
+    (yield_expression
+      (array_element_initializer
+        (variable_name (name)))))
+  (expression_statement
+    (yield_expression (variable_name (name)))))

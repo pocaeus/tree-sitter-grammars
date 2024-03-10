@@ -52,6 +52,10 @@
               {
                 "type": "SYMBOL",
                 "name": "inline_tag"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_inline_tag_false_positive"
               }
             ]
           }
@@ -219,6 +223,17 @@
         }
       ]
     },
+    "_inline_tag_false_positive": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC_LEFT",
+        "value": 1,
+        "content": {
+          "type": "PATTERN",
+          "value": "\\{[^@}]+\\}?"
+        }
+      }
+    },
     "tag_name_with_argument": {
       "type": "TOKEN",
       "content": {
@@ -266,6 +281,10 @@
           },
           {
             "type": "STRING",
+            "value": "@extends"
+          },
+          {
+            "type": "STRING",
             "value": "@fires"
           },
           {
@@ -291,6 +310,18 @@
           {
             "type": "STRING",
             "value": "@property"
+          },
+          {
+            "type": "STRING",
+            "value": "@prop"
+          },
+          {
+            "type": "STRING",
+            "value": "@satisfies"
+          },
+          {
+            "type": "STRING",
+            "value": "@typedef"
           }
         ]
       }
@@ -315,6 +346,10 @@
           {
             "type": "STRING",
             "value": "@throws"
+          },
+          {
+            "type": "STRING",
+            "value": "@type"
           }
         ]
       }
@@ -453,10 +488,6 @@
       "type": "PATTERN",
       "value": "[a-zA-Z_$][a-zA-Z_$0-9]*"
     },
-    "type": {
-      "type": "PATTERN",
-      "value": "[^}\\n]+"
-    },
     "_text": {
       "type": "TOKEN",
       "content": {
@@ -537,7 +568,12 @@
   ],
   "conflicts": [],
   "precedences": [],
-  "externals": [],
+  "externals": [
+    {
+      "type": "SYMBOL",
+      "name": "type"
+    }
+  ],
   "inline": [],
   "supertypes": []
 }

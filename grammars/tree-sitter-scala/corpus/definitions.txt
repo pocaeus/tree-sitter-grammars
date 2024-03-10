@@ -1187,6 +1187,9 @@ object A:
   
   extension [A1](d: D) def foo = "foo"
 
+trait B:
+  extension (x: Int) def bar: String
+
 --------------------------------------------------------------------------------
 
 (compilation_unit
@@ -1211,7 +1214,18 @@ object A:
             (type_identifier)))
         (function_definition
           (identifier)
-          (string))))))
+          (string)))))
+  (trait_definition
+    (identifier)
+    (template_body
+      (extension_definition
+        (parameters
+          (parameter
+            (identifier)
+            (type_identifier)))
+        (function_declaration
+          (identifier)
+          (type_identifier))))))
 
 ================================================================================
 Given instance definitions (Scala 3 syntax)
@@ -1246,6 +1260,9 @@ object A:
 
   given [A](using Foo[A]): Foo[List[A]] with
     def x = ()
+
+  trait B:
+    given c: Context[T]
 
 --------------------------------------------------------------------------------
 
@@ -1385,7 +1402,16 @@ object A:
         (with_template_body
           (function_definition
             (identifier)
-            (unit)))))))
+            (unit))))
+      (trait_definition
+        (identifier)
+        (template_body
+          (given_definition
+            (identifier)
+            (generic_type
+              (type_identifier)
+              (type_arguments
+                (type_identifier)))))))))
 
 ================================================================================
 Top-level Definitions (Scala 3 syntax)

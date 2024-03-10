@@ -11,8 +11,8 @@ way.)
 
 ```toml
 [dependencies]
-tree-sitter = "0.20"
-tree-sitter-ocaml = "0.20"
+tree-sitter = "0.21"
+tree-sitter-ocaml = "0.21"
 ```
 
 Typically, you will use the [language][language func] function to add this
@@ -26,7 +26,7 @@ let code = r#"
 "#;
 let mut parser = Parser::new();
 parser
-    .set_language(tree_sitter_ocaml::language_ocaml())
+    .set_language(&tree_sitter_ocaml::language_ocaml())
     .expect("Error loading OCaml grammar");
 let tree = parser.parse(code, None).unwrap();
 ```

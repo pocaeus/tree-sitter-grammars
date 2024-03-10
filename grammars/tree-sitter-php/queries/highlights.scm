@@ -1,17 +1,112 @@
-(php_tag) @tag
-"?>" @tag
+[
+  (php_tag)
+  "?>"
+] @tag
+
+; Keywords
+
+[
+  "abstract"
+  "and"
+  "as"
+  "break"
+  "case"
+  "catch"
+  "class"
+  "clone"
+  "const"
+  "continue"
+  "declare"
+  "default"
+  "do"
+  "echo"
+  "else"
+  "elseif"
+  "enddeclare"
+  "endfor"
+  "endforeach"
+  "endif"
+  "endswitch"
+  "endwhile"
+  "enum"
+  "exit"
+  "extends"
+  "final"
+  "finally"
+  "fn"
+  "for"
+  "foreach"
+  "function"
+  "global"
+  "goto"
+  "if"
+  "implements"
+  "include"
+  "include_once"
+  "instanceof"
+  "insteadof"
+  "interface"
+  "match"
+  "namespace"
+  "new"
+  "or"
+  "print"
+  "private"
+  "protected"
+  "public"
+  "readonly"
+  "require"
+  "require_once"
+  "return"
+  "switch"
+  "throw"
+  "trait"
+  "try"
+  "use"
+  "while"
+  "xor"
+  "yield"
+  (yield_expression "from")
+  (static_modifier)
+  (function_static_declaration "static")
+] @keyword
+
+; Variables
+
+(relative_scope) @variable.builtin
+
+(variable_name) @variable
+
+(method_declaration name: (name) @constructor
+  (#eq? @constructor "__construct"))
+
+(object_creation_expression [
+  (name) @constructor
+  (qualified_name (name) @constructor)
+])
+
+((name) @constant
+ (#match? @constant "^_?[A-Z][A-Z\\d_]+$"))
+((name) @constant.builtin
+ (#match? @constant.builtin "^__[A-Z][A-Z\d_]+__$"))
+(const_declaration (const_element (name) @constant))
 
 ; Types
 
 (primitive_type) @type.builtin
 (cast_type) @type.builtin
-(named_type (name) @type) @type
-(named_type (qualified_name) @type) @type
+(named_type [
+  (name) @type
+  (qualified_name (name) @type)
+]) @type
+(named_type (name) @type.builtin
+  (#any-of? @type.builtin "static" "self"))
 
 ; Functions
 
 (array_creation_expression "array" @function.builtin)
 (list_literal "list" @function.builtin)
+(exit_statement "exit" @function.builtin "(")
 
 (method_declaration
   name: (name) @function.method)
@@ -38,23 +133,6 @@
 (member_access_expression
   name: (name) @property)
 
-; Variables
-
-(relative_scope) @variable.builtin
-
-((name) @constant
- (#match? @constant "^_?[A-Z][A-Z\\d_]+$"))
-((name) @constant.builtin
- (#match? @constant.builtin "^__[A-Z][A-Z\d_]+__$"))
-
-((name) @constructor
- (#match? @constructor "^[A-Z]"))
-
-((name) @variable.builtin
- (#eq? @variable.builtin "this"))
-
-(variable_name) @variable
-
 ; Basic tokens
 [
   (string)
@@ -70,53 +148,7 @@
 (float) @number
 (comment) @comment
 
+((name) @variable.builtin
+ (#eq? @variable.builtin "this"))
+
 "$" @operator
-
-; Keywords
-
-"abstract" @keyword
-"as" @keyword
-"break" @keyword
-"case" @keyword
-"catch" @keyword
-"class" @keyword
-"const" @keyword
-"continue" @keyword
-"declare" @keyword
-"default" @keyword
-"do" @keyword
-"echo" @keyword
-"else" @keyword
-"elseif" @keyword
-"enddeclare" @keyword
-"endforeach" @keyword
-"endif" @keyword
-"endswitch" @keyword
-"endwhile" @keyword
-"extends" @keyword
-"final" @keyword
-"finally" @keyword
-"foreach" @keyword
-"function" @keyword
-"global" @keyword
-"if" @keyword
-"implements" @keyword
-"include_once" @keyword
-"include" @keyword
-"insteadof" @keyword
-"interface" @keyword
-"namespace" @keyword
-"new" @keyword
-"private" @keyword
-"protected" @keyword
-"public" @keyword
-"require_once" @keyword
-"require" @keyword
-"return" @keyword
-"static" @keyword
-"switch" @keyword
-"throw" @keyword
-"trait" @keyword
-"try" @keyword
-"use" @keyword
-"while" @keyword

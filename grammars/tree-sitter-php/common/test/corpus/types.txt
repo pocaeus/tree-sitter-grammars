@@ -12,13 +12,11 @@ function b(): A\B {}
   (php_tag)
   (function_definition
     (name) (formal_parameters)
-    (union_type (named_type (name)))
+    (named_type (name))
     (compound_statement))
   (function_definition
     (name) (formal_parameters)
-    (union_type
-      (named_type (qualified_name (namespace_name_as_prefix (namespace_name (name))) (name)))
-    )
+    (named_type (qualified_name (namespace_name_as_prefix (namespace_name (name))) (name)))
     (compound_statement)))
 
 =========================
@@ -37,21 +35,20 @@ function d(): never {}
   (php_tag)
   (function_definition
     (name) (formal_parameters)
-    (union_type (primitive_type))
+    (primitive_type)
     (compound_statement))
   (function_definition
     (name) (formal_parameters)
-    (union_type (primitive_type))
+    (primitive_type)
     (compound_statement))
   (function_definition
     (name) (formal_parameters)
-    (union_type (primitive_type))
+    (primitive_type)
     (compound_statement))
   (function_definition
     (name) (formal_parameters)
     (bottom_type)
     (compound_statement)))
-
 
 =======================
 Intersection type
@@ -133,6 +130,112 @@ function test(Type&MoreTypes &$b) {}
 )
 
 =======================
+Disjunctive Normal Form type
+=======================
+<?php
+
+class Test {
+    public (A&B)|C|null $prop;
+}
+
+function test((A&B)|(A&C) $a): A|(A&B)|(A&C)|D {}
+
+function test((Type&MoreTypes)|A|B &... $b) {}
+
+function test(A|B|(Type&MoreTypes)|C &$b) {}
+---
+(program
+  (php_tag)
+  (class_declaration
+    (name)
+    (declaration_list
+      (property_declaration
+        (visibility_modifier)
+        (disjunctive_normal_form_type
+          (intersection_type
+            (named_type (name))
+            (named_type (name))
+          )
+          (named_type (name))
+          (primitive_type)
+        )
+        (property_element
+          (variable_name (name))
+        )
+      )
+    )
+  )
+  (function_definition
+    (name)
+    (formal_parameters
+      (simple_parameter
+        (disjunctive_normal_form_type
+          (intersection_type
+            (named_type (name))
+            (named_type (name))
+          )
+          (intersection_type
+            (named_type (name))
+            (named_type (name))
+          )
+        )
+        (variable_name (name))
+      )
+    )
+    (disjunctive_normal_form_type
+      (named_type (name))
+      (intersection_type
+        (named_type (name))
+        (named_type (name))
+      )
+      (intersection_type
+        (named_type (name))
+        (named_type (name))
+      )
+      (named_type (name))
+    )
+    (compound_statement)
+  )
+  (function_definition
+    (name)
+    (formal_parameters
+      (variadic_parameter
+        (disjunctive_normal_form_type
+          (intersection_type
+            (named_type (name))
+            (named_type (name))
+          )
+          (named_type (name))
+          (named_type (name))
+        )
+        (reference_modifier)
+        (variable_name (name))
+      )
+    )
+    (compound_statement)
+  )
+  (function_definition
+    (name)
+    (formal_parameters
+      (simple_parameter
+        (disjunctive_normal_form_type
+          (named_type (name))
+          (named_type (name))
+          (intersection_type
+            (named_type (name))
+            (named_type (name))
+          )
+          (named_type (name))
+        )
+        (reference_modifier)
+        (variable_name (name))
+      )
+    )
+    (compound_statement)
+  )
+)
+
+=======================
 Optional types
 =======================
 
@@ -147,15 +250,11 @@ function b(): ?Something {}
   (php_tag)
   (function_definition
     (name) (formal_parameters)
-    (union_type
-      (optional_type (primitive_type))
-    )
+    (optional_type (primitive_type))
     (compound_statement))
   (function_definition
     (name) (formal_parameters)
-    (union_type
-      (optional_type (named_type (name)))
-    )
+    (optional_type (named_type (name)))
     (compound_statement)))
 
 
@@ -184,11 +283,9 @@ function a(int|string|null $var) : ?int|MyClass {}
       )
     )
     return_type: (union_type
-      (optional_type
-        (primitive_type)
-      )
-      (named_type (name))
-    )
+      (optional_type (primitive_type))
+      (named_type (name)
+    ))
     body: (compound_statement)
   )
 )
@@ -217,7 +314,7 @@ function a(mixed|string $var) : mixed {
         (variable_name (name))
       )
     )
-    (union_type (primitive_type))
+    (primitive_type)
     (compound_statement)
   )
 )
@@ -239,13 +336,11 @@ function a(string $var) : static {
     (name)
     (formal_parameters
       (simple_parameter
-        (union_type
-          (primitive_type)
-        )
+       (primitive_type)
         (variable_name (name))
       )
     )
-    (union_type (primitive_type))
+    (named_type (name))
     (compound_statement)
   )
 )
@@ -271,8 +366,7 @@ class Nil {
     (declaration_list
       (property_declaration
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))
@@ -283,12 +377,10 @@ class Nil {
         (name)
         (formal_parameters
           (simple_parameter
-            (union_type
-              (primitive_type))
+           (primitive_type)
             (variable_name
               (name))))
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (compound_statement)))))
 
 ===============================================
@@ -312,8 +404,7 @@ class Falsy {
     (declaration_list
       (property_declaration
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))
@@ -324,12 +415,10 @@ class Falsy {
         (name)
         (formal_parameters
           (simple_parameter
-            (union_type
-              (primitive_type))
+           (primitive_type)
             (variable_name
               (name))))
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (compound_statement)))))
 
 ===============================================
@@ -353,8 +442,7 @@ class Truthy {
     (declaration_list
       (property_declaration
         (visibility_modifier)
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (property_element
           (variable_name
             (name))
@@ -365,11 +453,9 @@ class Truthy {
         (name)
         (formal_parameters
           (simple_parameter
-            (union_type
-              (primitive_type))
+           (primitive_type)
             (variable_name
               (name))))
-        (union_type
-          (primitive_type))
+        (primitive_type)
         (compound_statement)))))
 

@@ -17,10 +17,17 @@ module.exports = grammar({
     $._automatic_semicolon,
     $._template_chars,
     $._ternary_qmark,
+    $.html_comment,
+    '||',
+    // We use escape sequence and regex pattern to tell the scanner if we're currently inside a string or template string, in which case
+    // it should NOT parse html comments.
+    $.escape_sequence,
+    $.regex_pattern,
   ],
 
   extras: $ => [
     $.comment,
+    $.html_comment,
     /[\s\p{Zs}\uFEFF\u2028\u2029\u2060\u200B]/,
   ],
 
@@ -78,6 +85,7 @@ module.exports = grammar({
     [$.primary_expression, $.statement_block, 'object'],
     [$.import_statement, $.import],
     [$.export_statement, $.primary_expression],
+    [$.lexical_declaration, $.primary_expression],
   ],
 
   conflicts: $ => [
@@ -185,6 +193,7 @@ module.exports = grammar({
         seq($.import_clause, $._from_clause),
         field('source', $.string),
       ),
+      optional($.import_attribute),
       $._semicolon,
     ),
 
@@ -226,6 +235,8 @@ module.exports = grammar({
         field('alias', $.identifier),
       ),
     ),
+
+    import_attribute: $ => seq('with', $.object),
 
     //
     // Statements
@@ -359,12 +370,13 @@ module.exports = grammar({
       field('body', $.statement),
     ),
 
-    do_statement: $ => seq(
+    do_statement: $ => prec.right(seq(
       'do',
       field('body', $.statement),
       'while',
       field('condition', $.parenthesized_expression),
-    ),
+      optional($._semicolon),
+    )),
 
     try_statement: $ => seq(
       'try',
@@ -494,10 +506,9 @@ module.exports = grammar({
       $.true,
       $.false,
       $.null,
-      $.import,
       $.object,
       $.array,
-      $.function,
+      $.function_expression,
       $.arrow_function,
       $.generator_function,
       $.class,
@@ -601,9 +612,14 @@ module.exports = grammar({
 
     // Should not contain new lines and should not start or end with a space
     jsx_text: _ => choice(
-      /[^{}<>\n ]([^{}<>\n]*[^{}<>\n ])?/,
+      /[^{}<>\n& ]([^{}<>\n&]*[^{}<>\n& ])?/,
       /\/\/[^\n]*/,
     ),
+
+    // An entity can be named, numeric (decimal), or numeric (hexadecimal). The
+    // longest entity name is 29 characters long, and the HTML spec says that
+    // no more will ever be added.
+    html_character_reference: _ => /&(#([xX][0-9a-fA-F]{1,6}|[0-9]{1,5})|[A-Za-z]{1,30});/,
 
     jsx_expression: $ => seq(
       '{',
@@ -617,6 +633,7 @@ module.exports = grammar({
 
     _jsx_child: $ => choice(
       $.jsx_text,
+      $.html_character_reference,
       $._jsx_element,
       $.jsx_expression,
     ),
@@ -638,9 +655,9 @@ module.exports = grammar({
     ),
 
     nested_identifier: $ => prec('member', seq(
-      choice($.identifier, alias($.nested_identifier, $.member_expression)),
+      field('object', choice($.identifier, alias($.nested_identifier, $.member_expression))),
       '.',
-      alias($.identifier, $.property_identifier),
+      field('property', alias($.identifier, $.property_identifier)),
     )),
 
     jsx_namespace_name: $ => seq($._jsx_identifier, ':', $._jsx_identifier),
@@ -676,8 +693,36 @@ module.exports = grammar({
       )),
     ),
 
+    _jsx_string: $ => choice(
+      seq(
+        '"',
+        repeat(choice(
+          alias($.unescaped_double_jsx_string_fragment, $.string_fragment),
+          $.html_character_reference,
+        )),
+        '"',
+      ),
+      seq(
+        '\'',
+        repeat(choice(
+          alias($.unescaped_single_jsx_string_fragment, $.string_fragment),
+          $.html_character_reference,
+        )),
+        '\'',
+      ),
+    ),
+
+    // Workaround to https://github.com/tree-sitter/tree-sitter/issues/1156
+    // We give names to the token() constructs containing a regexp
+    // so as to obtain a node in the CST.
+    //
+    unescaped_double_jsx_string_fragment: _ => token.immediate(prec(1, /([^"&]|&[^#A-Za-z])+/)),
+
+    // same here
+    unescaped_single_jsx_string_fragment: _ => token.immediate(prec(1, /([^'&]|&[^#A-Za-z])+/)),
+
     _jsx_attribute_value: $ => choice(
-      $.string,
+      alias($._jsx_string, $.string),
       $.jsx_expression,
       $._jsx_element,
     ),
@@ -701,7 +746,7 @@ module.exports = grammar({
 
     class_heritage: $ => seq('extends', $.expression),
 
-    function: $ => prec('literal', seq(
+    function_expression: $ => prec('literal', seq(
       optional('async'),
       'function',
       field('name', optional($.identifier)),
@@ -761,7 +806,7 @@ module.exports = grammar({
 
     call_expression: $ => choice(
       prec('call', seq(
-        field('function', $.expression),
+        field('function', choice($.expression, $.import)),
         field('arguments', choice($.arguments, $.template_string)),
       )),
       prec('member', seq(
@@ -783,7 +828,7 @@ module.exports = grammar({
     )),
 
     member_expression: $ => prec('member', seq(
-      field('object', choice($.expression, $.primary_expression)),
+      field('object', choice($.expression, $.primary_expression, $.import)),
       choice('.', field('optional_chain', $.optional_chain)),
       field('property', choice(
         $.private_property_identifier,
@@ -897,22 +942,12 @@ module.exports = grammar({
       ),
     )),
 
-    sequence_expression: $ => seq(
-      field('left', $.expression),
-      ',',
-      field('right', choice($.sequence_expression, $.expression)),
-    ),
+    sequence_expression: $ => prec.right(commaSep1($.expression)),
 
     //
     // Primitives
     //
 
-    // Here we tolerate unescaped newlines in double-quoted and
-    // single-quoted string literals.
-    // This is legal in typescript as jsx/tsx attribute values (as of
-    // 2020), and perhaps will be valid in javascript as well in the
-    // future.
-    //
     string: $ => choice(
       seq(
         '"',
@@ -936,10 +971,10 @@ module.exports = grammar({
     // We give names to the token() constructs containing a regexp
     // so as to obtain a node in the CST.
     //
-    unescaped_double_string_fragment: _ => token.immediate(prec(1, /[^"\\]+/)),
+    unescaped_double_string_fragment: _ => token.immediate(prec(1, /[^"\\\r\n]+/)),
 
     // same here
-    unescaped_single_string_fragment: _ => token.immediate(prec(1, /[^'\\]+/)),
+    unescaped_single_string_fragment: _ => token.immediate(prec(1, /[^'\\\r\n]+/)),
 
     escape_sequence: _ => token.immediate(seq(
       '\\',
@@ -948,35 +983,27 @@ module.exports = grammar({
         /[0-7]{1,3}/,
         /x[0-9a-fA-F]{2}/,
         /u[0-9a-fA-F]{4}/,
-        /u{[0-9a-fA-F]+}/,
+        /u\{[0-9a-fA-F]+\}/,
+        /[\r?][\n\u2028\u2029]/,
       ),
     )),
 
     // http://stackoverflow.com/questions/13014947/regex-to-match-a-c-style-multiline-comment/36328890#36328890
-    comment: _ => token(choice(
-      seq('//', /.*/),
-      seq(
-        '/*',
-        /[^*]*\*+([^/*][^*]*\*+)*/,
-        '/',
-      ),
-      // https://tc39.es/ecma262/#sec-html-like-comments
-      seq('<!--', /.*/),
-      // This allows code to exist before this token on the same line.
-      //
-      // Technically, --> is supposed to have nothing before it on the same line
-      // except for comments and whitespace, but that is difficult to express,
-      // and in general tree sitter grammars tend to prefer to be overly
-      // permissive anyway.
-      //
-      // This approach does not appear to cause problems in practice.
-      seq('-->', /.*/),
-    )),
+    comment: $ => choice(
+      token(choice(
+        seq('//', /.*/),
+        seq(
+          '/*',
+          /[^*]*\*+([^/*][^*]*\*+)*/,
+          '/',
+        ),
+      )),
+    ),
 
     template_string: $ => seq(
       '`',
       repeat(choice(
-        $._template_chars,
+        alias($._template_chars, $.string_fragment),
         $.escape_sequence,
         $.template_substitution,
       )),
@@ -992,7 +1019,7 @@ module.exports = grammar({
     regex: $ => seq(
       '/',
       field('pattern', $.regex_pattern),
-      token.immediate('/'),
+      token.immediate(prec(1, '/')),
       optional(field('flags', $.regex_flags)),
     ),
 
@@ -1128,6 +1155,7 @@ module.exports = grammar({
         seq(field('member', $.field_definition), $._semicolon),
         field('member', $.class_static_block),
         field('template', $.glimmer_template),
+        ';',
       )),
       '}',
     ),
@@ -1211,6 +1239,7 @@ module.exports = grammar({
       'async',
       'static',
       'export',
+      'let',
     ),
 
     _semicolon: $ => choice($._automatic_semicolon, ';'),

@@ -70,9 +70,13 @@ import defaultMember, { member1, member2 as alias2 } from "module-name";
 import defaultMember, * as name from "module-name";
 import "module-name";
 import { member1 , member2 as alias2, } from "module-name";
+import pkg from "./package.json" with { type: "json" };
 import("a");
 import("a").then((m) => {});
 import.meta.url;
+import { b } from
+'b'; /* comment */ import
+ { a } from 'a';
 
 ----
 
@@ -154,6 +158,17 @@ import.meta.url;
           (identifier))))
     (string
       (string_fragment)))
+  (import_statement
+    (import_clause
+      (identifier))
+    (string
+      (string_fragment))
+    (import_attribute
+      (object
+        (pair
+          (property_identifier)
+          (string
+            (string_fragment))))))
   (expression_statement
     (call_expression
       (import)
@@ -179,7 +194,22 @@ import.meta.url;
       (member_expression
         (import)
         (property_identifier))
-      (property_identifier))))
+      (property_identifier)))
+  (import_statement
+    (import_clause
+      (named_imports
+        (import_specifier
+          (identifier))))
+    (string
+      (string_fragment)))
+  (comment)
+  (import_statement
+    (import_clause
+      (named_imports
+        (import_specifier
+          (identifier))))
+    (string
+      (string_fragment))))
 
 ============================================
 Exports
@@ -265,7 +295,7 @@ export { "string import" as "string export" } from 'foo';
         key: (property_identifier)
         value: (array))))
   (export_statement
-    value: (function
+    value: (function_expression
       parameters: (formal_parameters)
       body: (statement_block)))
   (export_statement
@@ -364,6 +394,8 @@ if (a.b) {
   d;
 }
 
+if (n-->0){}
+
 ----
 
 (program
@@ -387,7 +419,14 @@ if (a.b) {
           arguments: (arguments
             (identifier))))
       (expression_statement
-        (identifier)))))
+        (identifier))))
+  (if_statement
+    condition: (parenthesized_expression
+      (binary_expression
+        left: (update_expression
+          argument: (identifier))
+        right: (number)))
+    consequence: (statement_block)))
 
 ============================================
 If-else statements
@@ -452,6 +491,8 @@ for (var i = 0
   ; i++) {
 }
 
+for (let in {});
+
 ---
 
 (program
@@ -469,10 +510,10 @@ for (var i = 0
   (for_statement
     initializer: (expression_statement
       (sequence_expression
-        left: (assignment_expression
+        (assignment_expression
           left: (identifier)
           right: (number))
-        right: (call_expression
+        (call_expression
           function: (identifier)
           arguments: (arguments))))
     condition: (expression_statement
@@ -504,7 +545,11 @@ for (var i = 0
         right: (identifier)))
     increment: (update_expression
       argument: (identifier))
-    body: (statement_block)))
+    body: (statement_block))
+  (for_in_statement
+    left: (identifier)
+    right: (object)
+    body: (empty_statement)))
 
 ============================================
 For-in statements
@@ -563,9 +608,8 @@ for (var foo = bar in baz) {}
     (identifier)
     (sequence_expression
       (identifier)
-      (sequence_expression
-        (identifier)
-        (identifier)))
+      (identifier)
+      (identifier))
     (expression_statement
       (call_expression
         (identifier)
@@ -728,6 +772,12 @@ do do; while (a) while (a)
 
 for (a in b) { do ; while (a) break; }
 
+do
+  if (true)
+    do {
+    } while (false);
+while (0);
+
 ---
 
 (program
@@ -761,7 +811,17 @@ for (a in b) { do ; while (a) break; }
         body: (empty_statement)
         condition: (parenthesized_expression
           (identifier)))
-      (break_statement))))
+      (break_statement)))
+  (do_statement
+    body: (if_statement
+      condition: (parenthesized_expression
+        (true))
+      consequence: (do_statement
+        body: (statement_block)
+        condition: (parenthesized_expression
+          (false))))
+    condition: (parenthesized_expression
+      (number))))
 
 ============================================
 Return statements
@@ -838,7 +898,7 @@ Comments
       (comment)
       (pair
         (property_identifier)
-        (function
+        (function_expression
           (formal_parameters)
           (statement_block))))))
 
@@ -860,6 +920,12 @@ var thing = {
   }
 };
 
+let foo = bar
+  // this is a comment
+  ? 'baz' : 'thud';
+
+let a /* >_< */ = 1
+
 ---
 
 (program
@@ -873,7 +939,7 @@ var thing = {
         (comment)
         (pair
           (property_identifier)
-          (function
+          (function_expression
             (formal_parameters
               (identifier)
               (comment))
@@ -887,7 +953,22 @@ var thing = {
               (expression_statement
                 (call_expression
                   (identifier)
-                  (arguments))))))))))
+                  (arguments)))))))))
+  (lexical_declaration
+    (variable_declarator
+      (identifier)
+      (ternary_expression
+        (identifier)
+        (comment)
+        (string
+          (string_fragment))
+        (string
+          (string_fragment)))))
+  (lexical_declaration
+    (variable_declarator
+      (identifier)
+      (comment)
+      (number))))
 
 ============================================
 Comments with asterisks
@@ -907,6 +988,14 @@ const c = 1;
 ***/
 const d = 1;
 
+class E {
+    f() {
+    } /*** com
+    ment ***/
+    g() {
+    }
+}
+
 ---
 
 (program
@@ -929,7 +1018,19 @@ const d = 1;
   (lexical_declaration
     (variable_declarator
       (identifier)
-      (number))))
+      (number)))
+  (class_declaration
+    (identifier)
+    (class_body
+      (method_definition
+        (property_identifier)
+        (formal_parameters)
+        (statement_block))
+      (comment)
+      (method_definition
+        (property_identifier)
+        (formal_parameters)
+        (statement_block)))))
 
 ==========================================
 Comments within expressions
@@ -965,21 +1066,21 @@ x + 1; --> for some reason you can put text after a close comment.
 ---
 
 (program
-  (comment)
+  (html_comment)
   (expression_statement
     (binary_expression
       (identifier)
       (identifier)))
-  (comment)
+  (html_comment)
   (expression_statement
     (binary_expression
       (identifier)
       (number)))
-  (comment)
-  (comment)
-  (comment)
-  (comment)
-  (comment))
+  (html_comment)
+  (html_comment)
+  (html_comment)
+  (html_comment)
+  (html_comment))
 
 ============================================
 Switch statements
