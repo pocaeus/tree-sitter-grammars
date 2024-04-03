@@ -65,12 +65,13 @@ pub async fn update_language(
 
         if let Some(language) = languages.languages.get(&language_name) {
             let destination_directory = format!("{}{}", directory.display(), &language.name);
-            clone_repository(language.clone(), destination_directory).await;
+            clone_repository(language.clone(), destination_directory.clone()).await;
 
             // compiling to wasm is enabled
             if wasm {
-                let target = format!("{}{}.wasm", "./wasm/", language_name);
+                let target = format!("../../{}{}.wasm", "wasm/", language_name);
                 Command::new("tree-sitter")
+                    .current_dir(destination_directory.clone())
                     .arg("build")
                     .arg("--wasm")
                     .arg("-o")
