@@ -1,7 +1,7 @@
 /*
  * Grammar for D code for use by Tree-Sitter.
  *
- * Copyright 2022 Garrett D'Amore
+ * Copyright 2024 Garrett D'Amore
  *
  * Distributed under the MIT License.
  * (See accompanying file LICENSE.txt or https://opensource.org/licenses/MIT)
@@ -564,6 +564,7 @@ module.exports = grammar({
     //
     alias_declaration: ($) =>
       choice(
+        seq($.alias, $.this, "=", $.identifier, ";"),
         seq($.alias, commaSep1($.alias_initializer), ";"),
         seq(
           $.alias,
@@ -1805,14 +1806,14 @@ module.exports = grammar({
             $.function_body
           ),
           seq(
-            repeat1(choice($.storage_class, $.enum)),
+            repeat1($.storage_class),
             $.identifier,
             $.parameters,
             repeat($.member_function_attribute),
             $.function_body
           ),
           seq(
-            repeat1(choice($.storage_class, $.enum)),
+            repeat1($.storage_class),
             $.identifier,
             $.template_parameters,
             $.parameters,
@@ -2273,61 +2274,28 @@ module.exports = grammar({
     [$.parameter_attribute, $.variadic_arguments_attribute],
     [$.parameter_attribute, $.type],
     [$.block_statement, $.aggregate_initializer],
-    [$.storage_class, $.enum_declaration],
     [$.storage_class, $.synchronized_statement],
     [$.storage_class, $.linkage_attribute],
     [$.deprecated_attribute, $.storage_class],
     [$.type_ctor, $.variadic_arguments_attribute],
-    [$.type_ctor, $.storage_class],
-    [$.function_literal, $.scope_guard_statement],
-    [$.storage_class, $._attribute, $.constructor, $.destructor],
     [$._attribute, $.storage_class, $.type],
-    [$._primary_expr, $.template_instance],
     [$.foreach_type, $.type],
     [$._specified_function_body],
-    [$._specified_function_body, $.block_statement],
-    [$._specified_function_body, $.scope_guard_statement],
-    [$._specified_function_body, $.in_statement],
     [$._statement_no_case_no_default, $._specified_function_body],
-    [$._statement_no_case_no_default, $.static_assert],
-    [$.storage_class, $.type_ctor, $._attribute],
     [$._declaration2, $._statement_no_case_no_default],
-    [$.pragma_declaration, $.pragma_statement],
     [$._declaration_or_statement, $.conditional_declaration],
     [$.storage_class, $.type],
-    [$._attribute, $.type],
     [$.type_ctor, $.constructor, $.destructor],
-    [$.arguments, $.parameters],
-    [$.array_literal, $.index_expression],
-    [$.manifest_constant, $.enum_declaration, $.function_declaration],
-    [$.manifest_constant, $.function_declaration],
-    [$.manifest_constant, $.function_declaration, $.anonymous_enum_declaration],
-    [$.manifest_constant, $.auto_declaration, $.function_declaration],
-    [
-      $.manifest_constant,
-      $.auto_declaration,
-      $.function_declaration,
-      $.variable_declaration,
-    ],
-    [$.in_contract_expression, $.expression],
-    [$.arguments, $.expression],
     [$.label, $.member_initializer],
     [$.block_statement, $.conditional_declaration],
     [$.block_statement, $.static_foreach_declaration],
-    [$._declaration, $.static_foreach_declaration],
     [$._declaration_or_statement, $.static_foreach_declaration],
-    [$._primary_expr, $._unary_expr],
-    [$.type, $._primary_expr],
-    [$.type, $.expression],
-    [$.type, $.template_parameter],
     [$.expression_list, $.expression],
     [$.primary_expression, $.property_expression],
     [$.parameter, $.template_parameter],
-    [$.parameters, $.template_parameters],
     [$._primary_expr, $.constructor, $.postblit],
     [$._primary_expr, $.mixin_declaration],
     [$._primary_expr, $.destructor],
-    [$._primary_expr, $.linkage_attribute],
     [$.template_instance, $.template_mixin],
     [$._qualified_id, $._primary_expr],
     [$._type2, $._primary_expr],
@@ -2335,9 +2303,7 @@ module.exports = grammar({
     [$.pragma_declaration, $.block_statement],
     [$.pragma_declaration, $._declaration_or_statement],
     [$.pragma_declaration, $._declaration2],
-    [$.pragma_statement, $._declaration2],
     [$.pragma_declaration, $.pragma_statement, $._declaration2],
-    [$.case_statement, $.expression],
     [$.alias_reassign, $._primary_expr],
     [$.function_literal, $.parameter_attribute],
     [$.module_declaration, $.storage_class, $._attribute],

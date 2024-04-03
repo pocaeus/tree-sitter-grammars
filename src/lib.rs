@@ -98,15 +98,39 @@ pub async fn update_language(
             .collect();
 
         let async_clones: Vec<_> = grammars_to_update
+            .clone()
             .into_iter()
             .map(|(language, destination_directory)| {
                 tokio::spawn(async move {
-                    clone_repository(language.clone(), destination_directory).await
+                    clone_repository(language.clone(), destination_directory.clone()).await
                 })
             })
             .collect();
 
         for task in async_clones {
+            if let Err(err) = task.await {
+                eprintln!("Async task error: {:?}", err);
+            }
+        }
+
+        let compile_grammars_to_wasm: Vec<_> = grammars_to_update
+            .clone()
+            .into_iter()
+            .map(|(language, destination_directory)| {
+                tokio::spawn(async move {
+                    Command::new("tree-sitter")
+                        .current_dir(destination_directory.clone())
+                        .arg("build")
+                        .arg("--wasm")
+                        .arg("-o")
+                        .arg(format!("../../{}{}.wasm", "wasm/", language.name))
+                        .spawn()
+                        .expect("Failed to compile grammar to WebAssembly");
+                })
+            })
+            .collect();
+
+        for task in compile_grammars_to_wasm {
             if let Err(err) = task.await {
                 eprintln!("Async task error: {:?}", err);
             }

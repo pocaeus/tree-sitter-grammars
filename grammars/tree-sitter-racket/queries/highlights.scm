@@ -6,23 +6,22 @@
 (regex) @string.special
 (escape_sequence) @escape
 
-[(comment)
- (block_comment)
- (sexp_comment)] @comment
+(symbol) @variable
 
 (number) @number
 (character) @constant.builtin
 (boolean) @constant.builtin
 (keyword) @constant
+
+(extension) @keyword
+(lang_name) @variable.builtin
+
 (quote . (symbol)) @constant
 (quote
   .
   (list
     .
     (symbol)* @variable))
-
-(extension) @keyword
-(lang_name) @variable.builtin
 
 ((symbol) @operator
  (#match? @operator "^(\\+|-|\\*|/|=|>|<|>=|<=)$"))
@@ -43,42 +42,67 @@
 
 (list
   .
-  (symbol) @_f
+  (symbol) @keyword
   .
   (list
     .
-    (symbol)+ @variable)
-  (#match? @_f "^(lambda|λ|define-values|define-syntaxes|define-values-for-export|define-values-for-syntax)$"))
+    (symbol)+ @variable.parameter)
+  (#match? @keyword "^(lambda|λ|define-values|define-syntaxes|define-values-for-export|define-values-for-syntax|define-syntax-rule)$"))
 
 ((symbol) @comment
  (#match? @comment "^#[cC][iIsS]$"))
 
 (list
   .
-  (symbol) @_def
+  (symbol) @keyword
   .
   (list
     .
     (symbol) @function
     .
     (symbol)* @variable.parameter)
-  (#match? @_def "^(define|define/contract|define-syntax-rule)$"))
+  (#match? @keyword "^(define|define/contract)$"))
 
-(list
-  .
-  (symbol) @_def
-  .
-  (list
-    .
-    (symbol)* @variable.parameter)
-  (#match? @_def "^(lambda|λ)$"))
+;; quote ;;
 
-(list
-  .
-  (symbol) @_def
-  .
-  (symbol) @variable.parameter
-  (#match? @_def "^(lambda|λ)$"))
+;; hardcoded highlight four levels of nested structure
 
-(symbol) @variable
+; 'atom
+(quote
+  _ @constant)
+
+; '()
+(quote
+  (_ _* @constant))
+
+; '(())
+(quote
+  (_ (_ _* @constant)))
+
+; '((()))
+(quote
+  (_ (_ (_ _* @constant))))
+
+;; sexp comment ;;
+
+;; hardcoded highlight four levels of nested structure
+
+; #;atom
+(sexp_comment
+  _ @comment)
+
+; #;(list)
+(sexp_comment
+  (_ _* @comment))
+
+; #;(list (list))
+(sexp_comment
+  (_ (_ _* @comment)))
+
+; #;(list (list (list)))
+(sexp_comment
+  (_ (_ (_ _ @comment))))
+
+[(comment)
+ (block_comment)] @comment
 

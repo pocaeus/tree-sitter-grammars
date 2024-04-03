@@ -1,6 +1,9 @@
 // This grammar only concerns the inline structure according to the CommonMark Spec
-// (https://spec.commonmark.org/0.30/https://spec.commonmark.org/0.30/#inlines)
+// (https://spec.commonmark.org/0.30/#inlines)
 // For more information see README.md
+
+/// <reference types="tree-sitter-cli/dsl" />
+
 const common = require('../common/grammar.js');
 
 // Levels used for dynmic precedence. Ideally
@@ -13,23 +16,7 @@ const PRECEDENCE_LEVEL_HTML = 100;
 // Punctuation characters as specified in
 // https://github.github.com/gfm/#ascii-punctuation-character
 const PUNCTUATION_CHARACTERS_REGEX = '!-/:-@\\[-`\\{-~';
-const PUNCTUATION_CHARACTERS_ARRAY = [
-    '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<',
-    '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~'
-];
 
-// (https://github.github.com/gfm/#html-blocks)
-// tag names for html blocks of type 1
-const HTML_TAG_NAMES_RULE_1 = ['pre', 'script', 'style'];
-// tag names for html blocks of type 6
-const HTML_TAG_NAMES_RULE_7 = [
-    'address', 'article', 'aside', 'base', 'basefont', 'blockquote', 'body', 'caption', 'center',
-    'col', 'colgroup', 'dd', 'details', 'dialog', 'dir', 'div', 'dl', 'dt', 'fieldset', 'figcaption',
-    'figure', 'footer', 'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head',
-    'header', 'hr', 'html', 'iframe', 'legend', 'li', 'link', 'main', 'menu', 'menuitem', 'nav',
-    'noframes', 'ol', 'optgroup', 'option', 'p', 'param', 'section', 'source', 'summary', 'table',
-    'tbody', 'td', 'tfoot', 'th', 'thead', 'title', 'tr', 'track', 'ul'
-];
 
 // !!!
 // Notice the call to `add_inline_rules` which generates some additional rules related to parsing
@@ -122,13 +109,13 @@ module.exports = grammar(add_inline_rules({
 
         ...common.rules,
 
-        
+
         // A lot of inlines are defined in `add_inline_rules`, including:
         //
         // * collections of inlines
         // * emphasis
         // * textual content
-        // 
+        //
         // This is done to reduce code duplication, as some inlines need to be parsed differently
         // depending on the context. For example inlines in ATX headings may not contain newlines.
 
@@ -260,7 +247,7 @@ module.exports = grammar(add_inline_rules({
 
         // Raw html. As with html blocks we do not emit additional information as this is best done
         // by a proper html tree-sitter grammar.
-        // 
+        //
         // https://github.github.com/gfm/#raw-html
         _html_tag: $ => choice($._open_tag, $._closing_tag, $._html_comment, $._processing_instruction, $._declaration, $._cdata_section),
         _open_tag: $ => prec.dynamic(PRECEDENCE_LEVEL_HTML, seq('<', $._tag_name, repeat($._attribute), repeat(choice($._whitespace, $._soft_line_break)), optional('/'), '>')),
@@ -394,7 +381,7 @@ module.exports = grammar(add_inline_rules({
         ...(common.EXTENSION_TAGS ? {
             tag: $ => /#[0-9]*[a-zA-Z_\-\/][a-zA-Z_\-\/0-9]*/,
         } : {}),
-        
+
     },
 }));
 
@@ -460,7 +447,7 @@ function add_inline_rules(grammar) {
                 conflicts.push(['_strikethrough' + suffix_link, '_inline_element' + suffix_delimiter + suffix_link]);
             }
         }
-        
+
         if (common.EXTENSION_STRIKETHROUGH) {
             grammar.rules['_strikethrough' + suffix_link] = $ => prec.dynamic(PRECEDENCE_LEVEL_EMPHASIS, seq(alias($._strikethrough_open, $.emphasis_delimiter), optional($._last_token_punctuation), $['_inline' + '_no_tilde' + suffix_link], alias($._strikethrough_close, $.emphasis_delimiter)));
         }
@@ -482,6 +469,6 @@ function add_inline_rules(grammar) {
         }
         return cs;
     }
-    
+
     return grammar;
 }

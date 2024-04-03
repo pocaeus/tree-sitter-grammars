@@ -427,7 +427,7 @@ module.exports = function defineGrammar(dialect) {
       ),
 
       use_instead_of_clause: $ => prec.left(seq(
-        choice($.class_constant_access_expression, $.name),
+        $.class_constant_access_expression,
         keyword('insteadof'),
         $.name,
       )),
@@ -958,7 +958,7 @@ module.exports = function defineGrammar(dialect) {
 
       anonymous_function_creation_expression: $ => seq(
         optional(field('attributes', $.attribute_list)),
-        optional(keyword('static')),
+        optional(field('static_modifier', $.static_modifier)),
         keyword('function'),
         optional(field('reference_modifier', $.reference_modifier)),
         field('parameters', $.formal_parameters),

@@ -10,23 +10,26 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v2
+      - name: Set up the repo
+        uses: tree-sitter/parser-setup-action@v1.1
         with:
-          node-version: 16
-      - run: npm install
-      - run: npm test
+          node-version: ${{vars.NODE_VERSION}}
+      - name: Run tests
+        uses: tree-sitter/parser-test-action@v1.2
+        with:
+          test-library: ${{runner.os == 'Linux'}}
+          corpus-files: corpus/*
 
-  chez:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 14
-      - run: npm install
-      - run: git clone --depth 1 https://github.com/cisco/ChezScheme.git
-      - run: npx tree-sitter parse $(find ./ChezScheme -type f -name "*.scm" -o -name "*.ss" -not -exec grep -q -e '<<' -e '(#' -e '#{' -e '#!eof' -e '(\\' {} \; -print) -qt
+  # chez:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 14
+  #     - run: npm install
+  #     - run: git clone --depth 1 https://github.com/cisco/ChezScheme.git
+  #     - run: npx tree-sitter parse $(find ./ChezScheme -type f -name "*.scm" -o -name "*.ss" -not -exec grep -q -e '<<' -e '(#' -e '#{' -e '#!eof' -e '(\\' {} \; -print) -qt
 
   sicp:
     runs-on: ubuntu-latest

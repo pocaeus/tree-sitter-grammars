@@ -1924,17 +1924,8 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "class_constant_access_expression"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "name"
-              }
-            ]
+            "type": "SYMBOL",
+            "name": "class_constant_access_expression"
           },
           {
             "type": "ALIAS",
@@ -4949,14 +4940,12 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "ALIAS",
+              "type": "FIELD",
+              "name": "static_modifier",
               "content": {
-                "type": "PATTERN",
-                "value": "static",
-                "flags": "i"
-              },
-              "named": false,
-              "value": "static"
+                "type": "SYMBOL",
+                "name": "static_modifier"
+              }
             },
             {
               "type": "BLANK"

@@ -621,6 +621,7 @@ module.exports = grammar({
     author_declaration: $ =>
       seq(
         field('command', '\\author'),
+        field('options', optional($.brack_group)),
         field('authors', $.curly_group_author_list)
       ),
 
@@ -730,6 +731,10 @@ module.exports = grammar({
             '\\citep',
             '\\citet*',
             '\\citep*',
+            '\\citeA',
+            '\\citeR',
+            '\\citeS',
+            '\\citeyearR',
             '\\citeauthor',
             '\\citeauthor*',
             '\\Citeauthor',

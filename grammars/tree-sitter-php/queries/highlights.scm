@@ -6,7 +6,6 @@
 ; Keywords
 
 [
-  "abstract"
   "and"
   "as"
   "break"
@@ -31,7 +30,6 @@
   "enum"
   "exit"
   "extends"
-  "final"
   "finally"
   "fn"
   "for"
@@ -51,10 +49,6 @@
   "new"
   "or"
   "print"
-  "private"
-  "protected"
-  "public"
-  "readonly"
   "require"
   "require_once"
   "return"
@@ -66,10 +60,15 @@
   "while"
   "xor"
   "yield"
-  (yield_expression "from")
+  (abstract_modifier)
+  (final_modifier)
+  (readonly_modifier)
   (static_modifier)
-  (function_static_declaration "static")
+  (visibility_modifier)
 ] @keyword
+
+(yield_expression "from" @keyword)
+(function_static_declaration "static" @keyword)
 
 ; Variables
 

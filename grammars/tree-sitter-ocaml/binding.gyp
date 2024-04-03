@@ -2,19 +2,23 @@
   "targets": [
     {
       "target_name": "tree_sitter_ocaml_binding",
+      "dependencies": [
+        "<!(node -p \"require('node-addon-api').targets\"):node_addon_api_except",
+      ],
       "include_dirs": [
-        "<!(node -e \"require('nan')\")",
-        "ocaml/src"
+        "include"
       ],
       "sources": [
-        "ocaml/src/parser.c",
-        "ocaml/src/scanner.c",
-        "interface/src/parser.c",
-        "interface/src/scanner.c",
-        "bindings/node/binding.cc"
+        "bindings/node/binding.cc",
+        "grammars/ocaml/src/parser.c",
+        "grammars/ocaml/src/scanner.c",
+        "grammars/interface/src/parser.c",
+        "grammars/interface/src/scanner.c",
+        "grammars/type/src/parser.c",
+        "grammars/type/src/scanner.c",
       ],
       "cflags_c": [
-        "-std=c99",
+        "-std=c11",
       ]
     },
   ]
