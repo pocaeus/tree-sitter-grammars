@@ -34,6 +34,9 @@ enum Commands {
         /// Optional git hash to checkout from the grammar repository
         #[arg(long)]
         hash: Option<String>,
+        /// Whether we want to compile the grammar to WebAssembly
+        #[arg(short, long)]
+        wasm: bool,
     },
     /// Fetch the tree-sitter grammar(s)
     Fetch {
@@ -54,14 +57,26 @@ async fn main() {
     let file_path = cli.file;
 
     match &cli.command {
-        Some(Commands::Add { name, git, hash }) => {
+        Some(Commands::Add {
+            name,
+            git,
+            hash,
+            wasm,
+        }) => {
             let tree_sitter_name = format!("{}{}", "tree-sitter-", name);
             let language = Language::new(tree_sitter_name, git.clone(), hash.clone());
             add_language_grammar_to_toml(name.clone(), language, file_path.clone());
-            update_language(Some(name.clone()), false, file_path.clone(), dir).await;
+            update_language(
+                Some(name.clone()),
+                false,
+                wasm.clone(),
+                file_path.clone(),
+                dir,
+            )
+            .await;
         }
         Some(Commands::Fetch { name, all }) => {
-            update_language(name.clone(), all.clone(), file_path, dir).await;
+            update_language(name.clone(), all.clone(), false, file_path, dir).await;
         }
         None => {}
     }

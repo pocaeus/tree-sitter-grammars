@@ -7,6 +7,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
+use std::process::Command;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Language {
@@ -53,6 +54,7 @@ pub fn add_language_grammar_to_toml(name: String, language: Language, file_path:
 pub async fn update_language(
     name: Option<String>,
     all: bool,
+    wasm: bool,
     file_path: PathBuf,
     directory: PathBuf,
 ) -> () {
@@ -64,6 +66,18 @@ pub async fn update_language(
         if let Some(language) = languages.languages.get(&language_name) {
             let destination_directory = format!("{}{}", directory.display(), &language.name);
             clone_repository(language.clone(), destination_directory).await;
+
+            // compiling to wasm is enabled
+            if wasm {
+                let target = format!("{}{}.wasm", "./wasm/", language_name);
+                Command::new("tree-sitter")
+                    .arg("build")
+                    .arg("--wasm")
+                    .arg("-o")
+                    .arg(target)
+                    .spawn()
+                    .expect("Failed to compile grammar to WebAssembly");
+            }
         } else {
             eprintln!("Language not found: {}", language_name);
         }
