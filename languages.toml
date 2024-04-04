@@ -154,7 +154,7 @@ git = "https://github.com/Isopod/tree-sitter-pascal.git"
 
 [languages.perl]
 name = "tree-sitter-perl"
-git = "https://github.com/tree-sitter-perl/tree-sitter-perl"
+git = "https://github.com/tree-sitter-perl/tree-sitter-perl.git"
 
 [languages.php]
 name = "tree-sitter-php"
