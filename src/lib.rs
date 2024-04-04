@@ -1,3 +1,4 @@
+use futures::future::join_all;
 use git2::Oid;
 use git2::Repository;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -35,6 +36,9 @@ pub fn add_language_grammar_to_toml(name: String, language: Language, file_path:
     if let Some(existing_language) = languages.languages.get_mut(&name) {
         if existing_language.hash != language.hash {
             existing_language.hash = language.hash;
+        }
+        if existing_language.git != language.git {
+            existing_language.git = language.git;
         }
     } else {
         languages.languages.insert(name, language);
@@ -117,22 +121,38 @@ pub async fn update_language(
             .clone()
             .into_iter()
             .map(|(language, destination_directory)| {
+                let wasm_file_path = format!("../../{}{}.wasm", "wasm/", language.name);
                 tokio::spawn(async move {
-                    Command::new("tree-sitter")
-                        .current_dir(destination_directory.clone())
+                    let status = tokio::process::Command::new("tree-sitter")
+                        .current_dir(destination_directory)
                         .arg("build")
                         .arg("--wasm")
                         .arg("-o")
-                        .arg(format!("../../{}{}.wasm", "wasm/", language.name))
-                        .spawn()
-                        .expect("Failed to compile grammar to WebAssembly");
+                        .arg(wasm_file_path)
+                        .status()
+                        .await;
+                    match status {
+                        Ok(status) if status.success() => Ok(()),
+                        Ok(status) => Err(format!(
+                            "Command exited with status: {}, for language: {}",
+                            status, language.name
+                        )),
+                        Err(e) => Err(format!(
+                            "Failed to execute command: {}, for language: {}",
+                            e, language.name
+                        )),
+                    }
                 })
             })
             .collect();
 
-        for task in compile_grammars_to_wasm {
-            if let Err(err) = task.await {
-                eprintln!("Async task error: {:?}", err);
+        let results = join_all(compile_grammars_to_wasm).await;
+
+        for result in results {
+            match result {
+                Ok(Ok(())) => (),
+                Ok(Err(e)) => eprintln!("Error: {}", e),
+                Err(e) => eprintln!("Join error: {:?}", e),
             }
         }
     } else {

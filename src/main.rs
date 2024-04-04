@@ -46,6 +46,9 @@ enum Commands {
         /// Use this flag to update all grammars for all languages listed
         #[arg(long, default_value_t = false)]
         all: bool,
+        /// Whether we want to compile the grammar to WebAssembly
+        #[arg(short, long)]
+        wasm: bool,
     },
 }
 
@@ -75,8 +78,8 @@ async fn main() {
             )
             .await;
         }
-        Some(Commands::Fetch { name, all }) => {
-            update_language(name.clone(), all.clone(), false, file_path, dir).await;
+        Some(Commands::Fetch { name, all, wasm }) => {
+            update_language(name.clone(), all.clone(), wasm.clone(), file_path, dir).await;
         }
         None => {}
     }
